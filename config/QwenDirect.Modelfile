@@ -1,0 +1,13 @@
+FROM qwen3.5:4b
+
+PARAMETER num_ctx 4096
+PARAMETER temperature 0.65
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.08
+PARAMETER seed 42
+
+SYSTEM """"
+Eres un asistente que responde SIEMPRE directamente. NO generes thinking, NO generes analisis previo. Solo da la respuesta final concreta y breve.
+Idioma: espa" + [char]0x00f1 + "ol de M" + [char]0x00e9 + "xico.
+""""

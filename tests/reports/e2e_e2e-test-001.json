@@ -1,0 +1,83 @@
+﻿{
+    "mode":  "canned",
+    "steps":  {
+                  "3. Generate Script":  {
+                                             "step":  "3. Generate Script",
+                                             "timestamp":  "2026-09-08T13:00:57.8675484-06:00",
+                                             "duration_sec":  0.47828899999999996,
+                                             "status":  "PASS",
+                                             "details":  ""
+                                         },
+                  "2. RAG Query Test":  {
+                                            "step":  "2. RAG Query Test",
+                                            "timestamp":  "2026-09-08T13:00:57.3868225-06:00",
+                                            "duration_sec":  0.37384229999999996,
+                                            "status":  "PASS",
+                                            "details":  ""
+                                        },
+                  "6. Generate Images":  {
+                                             "step":  "6. Generate Images",
+                                             "timestamp":  "2026-09-08T13:01:01.4383256-06:00",
+                                             "duration_sec":  0.61469299999999993,
+                                             "status":  "PASS",
+                                             "details":  ""
+                                         },
+                  "8. Render Video":  {
+                                          "step":  "8. Render Video",
+                                          "timestamp":  "2026-09-08T13:01:31.0255422-06:00",
+                                          "duration_sec":  29.4002256,
+                                          "status":  "PASS",
+                                          "details":  ""
+                                      },
+                  "10. Generate Short Version":  {
+                                                     "step":  "10. Generate Short Version",
+                                                     "timestamp":  "2026-09-08T13:01:50.8222538-06:00",
+                                                     "duration_sec":  19.451161,
+                                                     "status":  "PASS",
+                                                     "details":  ""
+                                                 },
+                  "5. Generate TTS Audio":  {
+                                                "step":  "5. Generate TTS Audio",
+                                                "timestamp":  "2026-09-08T13:01:00.8192180-06:00",
+                                                "duration_sec":  2.7542967999999997,
+                                                "status":  "PASS",
+                                                "details":  ""
+                                            },
+                  "9. Validate Video":  {
+                                            "step":  "9. Validate Video",
+                                            "timestamp":  "2026-09-08T13:01:31.3662989-06:00",
+                                            "duration_sec":  0.3367652,
+                                            "status":  "PASS",
+                                            "details":  ""
+                                        },
+                  "4. Build Storyboard":  {
+                                              "step":  "4. Build Storyboard",
+                                              "timestamp":  "2026-09-08T13:00:58.0609444-06:00",
+                                              "duration_sec":  0.1891397,
+                                              "status":  "PASS",
+                                              "details":  ""
+                                          },
+                  "7. Generate Subtitles":  {
+                                                "step":  "7. Generate Subtitles",
+                                                "timestamp":  "2026-09-08T13:01:01.6223966-06:00",
+                                                "duration_sec":  0.1793073,
+                                                "status":  "PASS",
+                                                "details":  ""
+                                            },
+                  "1. RAG Ingest Demo Doc":  {
+                                                 "step":  "1. RAG Ingest Demo Doc",
+                                                 "timestamp":  "2026-09-08T13:00:56.9779180-06:00",
+                                                 "duration_sec":  2.5584697999999997,
+                                                 "status":  "PASS",
+                                                 "details":  ""
+                                             }
+              },
+    "steps_passed":  10,
+    "total_duration_sec":  56.444440099999994,
+    "steps_total":  10,
+    "job_id":  "e2e-test-001",
+    "steps_failed":  0,
+    "finished_at":  "2026-09-08T13:01:50.8762946-06:00",
+    "status":  "PASS",
+    "started_at":  "2026-09-08T13:00:54.3799015-06:00"
+}

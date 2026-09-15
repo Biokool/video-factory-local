@@ -1,0 +1,77 @@
+{
+  "generated_at": "2026-09-08T13:03:47.286734",
+  "jobs": [
+    {
+      "job_id": "default",
+      "artifacts": {
+        "script.json": {
+          "size": 3264,
+          "present": true
+        },
+        "storyboard.json": {
+          "size": 3282,
+          "present": true
+        },
+        "images.json": {
+          "size": 2088,
+          "present": true
+        },
+        "voice.json": {
+          "size": 1860,
+          "present": true
+        },
+        "subtitles.json": {
+          "size": 1003,
+          "present": true
+        },
+        "render.json": {
+          "size": 232,
+          "present": true
+        },
+        "qa.json": {
+          "size": 661,
+          "present": true
+        }
+      },
+      "duration_sec": 36.732333,
+      "size_bytes": 1970966,
+      "profile": "test_30s"
+    },
+    {
+      "job_id": "e2e-test-001",
+      "artifacts": {
+        "script.json": {
+          "size": 3264,
+          "present": true
+        },
+        "storyboard.json": {
+          "size": 3274,
+          "present": true
+        },
+        "images.json": {
+          "size": 2088,
+          "present": true
+        },
+        "voice.json": {
+          "size": 1860,
+          "present": true
+        },
+        "subtitles.json": {
+          "size": 1003,
+          "present": true
+        },
+        "render.json": {
+          "size": 234,
+          "present": true
+        },
+        "qa.json": {
+          "size": 663,
+          "present": true
+        }
+      },
+      "duration_sec": 36.732333,
+      "size_bytes": 1970966,
+      "profile": "test_30s"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Data (archivos generados)
+data/jobs/
+data/images/
+data/audio/
+data/subtitles/
+data/renders/
+data/research/
+data/documents/
+data/logs/
+
+# Assets grandes
+assets/hands/candidate_*.jpg
+assets/hands/candidate_*.png
+
+# Temp
+__pycache__/
+*.pyc
+*.pyo
+render_temp/
+
+# Environment
+.env
+*.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Large files
+*.mp4
+*.mp3
+*.wav
+*.srt

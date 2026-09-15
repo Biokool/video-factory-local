@@ -1,0 +1,59 @@
+{
+  "3": {
+    "inputs": {
+      "ckpt_name": "stable-diffusion-v1-5.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple"
+  },
+  "4": {
+    "inputs": {
+      "text": "realistic adult hand, palm visible, heart line clearly marked, soft warm light, documentary style, anatomical accuracy, detailed skin texture",
+      "clip": ["3", 1]
+    },
+    "class_type": "CLIPTextEncode"
+  },
+  "5": {
+    "inputs": {
+      "text": "text, watermark, distorted fingers, extra fingers, malformed hands, blurry, low quality, cartoon, anime",
+      "clip": ["3", 1]
+    },
+    "class_type": "CLIPTextEncode"
+  },
+  "6": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage"
+  },
+  "7": {
+    "inputs": {
+      "seed": 42,
+      "steps": 24,
+      "cfg": 7,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": ["3", 0],
+      "positive": ["4", 0],
+      "negative": ["5", 0],
+      "latent_image": ["6", 0]
+    },
+    "class_type": "KSampler"
+  },
+  "8": {
+    "inputs": {
+      "samples": ["7", 0],
+      "vae": ["3", 2]
+    },
+    "class_type": "VAEDecode"
+  },
+  "9": {
+    "inputs": {
+      "filename_prefix": "ComfyUI_sd15",
+      "images": ["8", 0]
+    },
+    "class_type": "SaveImage"
+  }
+}

@@ -1,0 +1,15 @@
+ollama
+supabase
+psycopg[binary]
+python-dotenv
+pydantic
+pydantic-settings
+PyYAML
+requests
+httpx
+numpy
+pillow
+piper-tts
+faster-whisper
+fastapi
+uvicorn

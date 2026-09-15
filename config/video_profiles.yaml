@@ -1,0 +1,37 @@
+profiles:
+  long:
+    width: 1920
+    height: 1080
+    fps: 30
+    video_codec: libx264
+    audio_codec: aac
+    audio_samplerate: 44100
+    audio_bitrate: 192k
+    pix_fmt: yuv420p
+    target_duration_range: [480, 540]
+    crf: 20
+    preset: medium
+  short:
+    width: 1080
+    height: 1920
+    fps: 30
+    video_codec: libx264
+    audio_codec: aac
+    audio_samplerate: 44100
+    audio_bitrate: 192k
+    pix_fmt: yuv420p
+    target_duration_range: [20, 60]
+    crf: 20
+    preset: medium
+  test_30s:
+    width: 1920
+    height: 1080
+    fps: 30
+    video_codec: libx264
+    audio_codec: aac
+    audio_samplerate: 44100
+    audio_bitrate: 192k
+    pix_fmt: yuv420p
+    target_duration_range: [20, 60]
+    crf: 22
+    preset: fast

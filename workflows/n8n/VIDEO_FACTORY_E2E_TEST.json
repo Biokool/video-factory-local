@@ -1,0 +1,252 @@
+{
+  "name": "AI Video Factory E2E Test",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "id": "trigger-1"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {"name": "topic", "value": "línea del corazón marcada en quiromancia terapéutica"},
+            {"name": "format", "value": "test_30s"},
+            {"name": "duration_target_seconds", "value": "50"},
+            {"name": "language", "value": "es-MX"},
+            {"name": "style", "value": "educativo-terapéutico-no-adivinatorio"},
+            {"name": "job_id", "value": "test-e2e-001"}
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Test Input",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "id": "set-input-1"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://127.0.0.1:11434/api/version",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "Ollama Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [680, 200],
+      "id": "ollama-health"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:54322",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "RAG Query Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [680, 320],
+      "id": "rag-query"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/generate",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "model", "value": "video-factory-qwen"},
+            {"name": "prompt", "value": "={{$json[\"topic\"]}}"},
+            {"name": "stream", "value": "false"}
+          ]
+        },
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "name": "Ollama Generate Script",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "id": "ollama-generate"
+    },
+    {
+      "parameters": {
+        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/build_storyboard.py --output-dir data\\jobs\\{{$json[\"job_id\"]}}"
+      },
+      "name": "Build Storyboard",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "id": "build-storyboard"
+    },
+    {
+      "parameters": {
+        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/generate_tts.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json"
+      },
+      "name": "Generate TTS",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1340, 200],
+      "id": "tts"
+    },
+    {
+      "parameters": {
+        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/generate_images.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json"
+      },
+      "name": "Generate Images",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1340, 320],
+      "id": "images"
+    },
+    {
+      "parameters": {
+        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/generate_subtitles.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json --voice data\\jobs\\{{$json[\"job_id\"]}}\\voice.json"
+      },
+      "name": "Generate Subtitles",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1340, 440],
+      "id": "subs"
+    },
+    {
+      "parameters": {
+        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/render_video.py --manifest data\\jobs\\{{$json[\"job_id\"]}}\\manifest.json --output data\\renders\\{{$json[\"job_id\"]}}.mp4 --burn-subtitles"
+      },
+      "name": "Render Video",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "id": "render"
+    },
+    {
+      "parameters": {
+        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/validate_video.py --video data\\renders\\{{$json[\"job_id\"]}}.mp4 --job-dir data\\jobs\\{{$json[\"job_id\"]}}"
+      },
+      "name": "Validate Video",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1780, 300],
+      "id": "validate"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
+                "conditions": [
+                  {
+                    "leftValue": "={{$json[\"passed\"]}}",
+                    "rightValue": "true",
+                    "operator": {"type": "boolean", "operation": "equal"}
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "passed"
+            }
+          ]
+        }
+      },
+      "name": "IF QA PASS",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [2000, 300],
+      "id": "if-qa"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:54322",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {"name": "job_id", "value": "={{$node[\"Set Test Input\"].json[\"job_id\"]}}"},
+            {"name": "status", "value": "APPROVED"},
+            {"name": "video_path", "value": "data/renders/{{$node[\"Set Test Input\"].json[\"job_id\"]}}.mp4"}
+          ]
+        }
+      },
+      "name": "Write Success Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2220, 200],
+      "id": "write-success"
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Set Test Input", "type": "main", "index": 0}]]
+    },
+    "Set Test Input": {
+      "main": [
+        [
+          {"node": "Ollama Health", "type": "main", "index": 0},
+          {"node": "RAG Query Service", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Ollama Health": {
+      "main": [[{"node": "Ollama Generate Script", "type": "main", "index": 0}]]
+    },
+    "RAG Query Service": {
+      "main": [[{"node": "Ollama Generate Script", "type": "main", "index": 0}]]
+    },
+    "Ollama Generate Script": {
+      "main": [[{"node": "Build Storyboard", "type": "main", "index": 0}]]
+    },
+    "Build Storyboard": {
+      "main": [
+        [
+          {"node": "Generate TTS", "type": "main", "index": 0},
+          {"node": "Generate Images", "type": "main", "index": 0},
+          {"node": "Generate Subtitles", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Generate TTS": {
+      "main": [[{"node": "Render Video", "type": "main", "index": 0}]]
+    },
+    "Generate Images": {
+      "main": [[{"node": "Render Video", "type": "main", "index": 0}]]
+    },
+    "Generate Subtitles": {
+      "main": [[{"node": "Render Video", "type": "main", "index": 0}]]
+    },
+    "Render Video": {
+      "main": [[{"node": "Validate Video", "type": "main", "index": 0}]]
+    },
+    "Validate Video": {
+      "main": [[{"node": "IF QA PASS", "type": "main", "index": 0}]]
+    },
+    "IF QA PASS": {
+      "main": [
+        [{"node": "Write Success Report", "type": "main", "index": 0}],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "video-factory-e2e",
+  "tags": [{"name": "video-factory"}]
+}

@@ -1,0 +1,22 @@
+content_rules:
+  disallowed_terms:
+    - "diagnóstico médico"
+    - "cura"
+    - "enfermedad definitiva"
+    - "predicción exacta"
+    - "futuro inevitable"
+    - "muerte segura"
+    - "accidente garantizado"
+  tone:
+    - "terapéutico"
+    - "educativo"
+    - "reflexivo"
+    - "no-adivinatorio"
+
+qa_thresholds:
+  min_video_duration_short: 20
+  max_video_duration_short: 60
+  min_video_duration_long: 450
+  max_video_duration_long: 570
+  max_audio_peak_dbfs: -0.5
+  min_file_size_bytes: 100000

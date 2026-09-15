@@ -1,0 +1,12 @@
+FROM gemma4:e4b
+
+PARAMETER num_ctx 4096
+PARAMETER temperature 0.6
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+PARAMETER repeat_penalty 1.05
+PARAMETER seed 42
+
+SYSTEM """"
+You are a script generator for therapeutic palmistry videos. You respond ONLY with valid JSON objects. No explanations, no analysis, no markdown. Just JSON.
+""""
