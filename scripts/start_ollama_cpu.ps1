@@ -5,5 +5,9 @@ $env:CUDA_VISIBLE_DEVICES = ""
 $env:OLLAMA_NUM_GPU = "0"
 $env:OLLAMA_HOST = "127.0.0.1:11434"
 
-Set-Location "F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO"
-& "C:\Users\mauri\AppData\Local\Programs\Ollama\ollama.exe" serve
+$ollamaExe = if ($env:OLLAMA_EXE) { $env:OLLAMA_EXE }
+             elseif (Get-Command ollama -ErrorAction SilentlyContinue) { (Get-Command ollama).Source }
+             else { Join-Path $env:LOCALAPPDATA "Programs\Ollama\ollama.exe" }
+
+Set-Location (Resolve-Path (Join-Path $PSScriptRoot ".."))
+& $ollamaExe serve

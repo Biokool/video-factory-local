@@ -1,0 +1,49 @@
+# Configuración consolidada V8 (perfiles visuales y de animación)
+# Referencia: docs/v7/03-IMAGENES-Y-ORTOGRAFIA.md y docs/v7/01-ARQUITECTURA-V7.md
+#
+# Este archivo consolida las decisiones de render del motor visual V8.
+# El compositor (scripts/v8/compositor.py) usa estos valores por defecto.
+
+render:
+  # Orden de capas (docs/v7/03). El compositor respeta este orden.
+  layer_order:
+    - background
+    - hand
+    - natural_creases
+    - palm_lines
+    - zones
+    - markers
+    - guides
+    - labels
+    - captions
+    - effects
+  text_renderer: cairo
+  font_family: "Segoe UI"          # incluye á é í ó ú ü ñ ¿ ¡
+  generated_text_in_images: false  # el texto nunca va dentro de una imagen
+  hand_asset_left: HAND_L_PALM_FRONT_EDITORIAL_V001
+  hand_asset_right: HAND_R_PALM_FRONT_EDITORIAL_V001
+  require_five_fingers: true
+  hand_viewbox: 1024
+
+animation:
+  # Recetas deterministas (docs/v7/animation_recipes.yaml)
+  draw_line:  {duration_min: 0.8, duration_max: 6.0, deterministic: true}
+  highlight:  {duration_min: 0.5, duration_max: 4.0, deterministic: true}
+  slow_zoom:  {scale_from: 1.0, scale_to: 1.06, deterministic: true}
+  crossfade:  {duration_min: 0.2, duration_max: 1.2, deterministic: true}
+
+profiles:
+  cosmic_educational_v1:
+    background: cosmic_gradient
+    hand_style: editorial_flat
+    text_renderer: cairo
+    locale: es-MX
+    generated_text_in_images: false
+    require_five_fingers: true
+  therapeutic_light_v1:
+    background: warm_neutral
+    hand_style: editorial_flat
+    text_renderer: cairo
+    locale: es-MX
+    generated_text_in_images: false
+    require_five_fingers: true

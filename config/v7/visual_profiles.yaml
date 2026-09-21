@@ -1,0 +1,15 @@
+profiles:
+  cosmic_educational_v1:
+    background: cosmic_gradient
+    hand_style: editorial_flat
+    text_renderer: cairo
+    locale: es-MX
+    generated_text_in_images: false
+    require_five_fingers: true
+  therapeutic_light_v1:
+    background: warm_neutral
+    hand_style: editorial_flat
+    text_renderer: cairo
+    locale: es-MX
+    generated_text_in_images: false
+    require_five_fingers: true

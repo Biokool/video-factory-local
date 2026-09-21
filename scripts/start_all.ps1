@@ -23,11 +23,15 @@ param(
 )
 
 $ErrorActionPreference = "Continue"
-$root = "F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO"
+$root = Resolve-Path (Join-Path $PSScriptRoot "..")
 
-$ollamaExe    = "C:\Users\mauri\AppData\Local\Programs\Ollama\ollama.exe"
-$dockerExe    = "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-$vsExe        = "C:\Users\mauri\AppData\Local\VoiceStudio (Current User)\omnivoice-studio.exe"
+$ollamaExe    = if ($env:OLLAMA_EXE) { $env:OLLAMA_EXE }
+                elseif (Get-Command ollama -ErrorAction SilentlyContinue) { (Get-Command ollama).Source }
+                else { Join-Path $env:LOCALAPPDATA "Programs\Ollama\ollama.exe" }
+$dockerExe    = if ($env:DOCKER_EXE) { $env:DOCKER_EXE }
+                else { Join-Path $env:ProgramFiles "Docker\Docker\Docker Desktop.exe" }
+$vsExe        = if ($env:VOICESTUDIO_EXE) { $env:VOICESTUDIO_EXE }
+                else { Join-Path $env:LOCALAPPDATA "VoiceStudio (Current User)\omnivoice-studio.exe" }
 
 function Test-Http($url, $sec = 4) {
     try {
@@ -66,7 +70,7 @@ if (-not $SkipDocker) {
             if ($ready) {
                 Write-Host "   Docker listo." -ForegroundColor Green
                 # Levantar el contenedor de Postgres+pgvector si existe en compose
-                $compose = "$root\docker-compose.yml"
+                $compose = Join-Path $root "docker-compose.yml"
                 if (Test-Path $compose) {
                     Write-Host "   levantando contenedores (docker compose up -d)..." -ForegroundColor Yellow
                     docker compose -f $compose up -d 2>&1 | Out-Null

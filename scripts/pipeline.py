@@ -10,7 +10,7 @@ Flujo:
   3. generar guion (LLM live o canned)
   4. construir storyboard
   5. TTS (VoiceStudio/SAPI, género)
-  6. generar imágenes (Pillow)
+  6. generar imágenes (compositor vectorial V8)
   7. generar subtítulos
   8. renderizar video (FFmpeg)
   9. validar (QA)
@@ -33,7 +33,26 @@ from pathlib import Path
 from datetime import datetime
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent
-PYTHON = r"C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe"
+
+
+def resolve_python() -> str:
+    """Resuelve el interprete dinamicamente.
+
+    Prefiere el .venv del proyecto SOLO si tiene las dependencias reales
+    (cairo); si esta vacio, usa el interprete en ejecucion. Evita rutas
+    absolutas hardcodeadas y venvs rotos.
+    """
+    venv_py = SCRIPT_DIR / ".venv" / "Scripts" / "python.exe"
+    if venv_py.exists():
+        probe = subprocess.run(
+            [str(venv_py), "-c", "import cairo, PIL, yaml"],
+            capture_output=True, text=True)
+        if probe.returncode == 0:
+            return str(venv_py)
+    return sys.executable
+
+
+PYTHON = resolve_python()
 
 STEPS = [
     "extract_pdf",
@@ -42,6 +61,7 @@ STEPS = [
     "build_storyboard",
     "research_images",
     "generate_tts",
+    "policy_gate",
     "generate_images",
     "generate_subtitles",
     "render_video",
@@ -208,7 +228,8 @@ def main():
         # ── 4. Storyboard ─────────────────────────────────────────────────
         state.set_step("build_storyboard", "running", "")
         rc, out, err = run([PYTHON, str(SCRIPT_DIR / "scripts" / "build_storyboard.py"),
-                            "--script", str(script_path), "--output-dir", str(job_dir)])
+                            "--script", str(script_path), "--output-dir", str(job_dir),
+                            "--topic", topic])
         if rc != 0:
             raise RuntimeError(f"build_storyboard: {err[-500:]}")
         state.set_step("build_storyboard", "done", "")
@@ -265,9 +286,33 @@ def main():
                 manifest_path.write_text(json.dumps(sb, indent=2, ensure_ascii=False), encoding="utf-8")
             print(f"[{datetime.now().isoformat()}] Duraciones sincronizadas con audio real", flush=True)
 
-        # ── 6. Imágenes ───────────────────────────────────────────────────
-        state.set_step("generate_images", "running", "multi-frame")
-        img_cmd = [PYTHON, str(SCRIPT_DIR / "scripts" / "generate_images.py"),
+        # ── 5c. Puerta comercial fail-closed (no publicar sin voz verificada)
+        try:
+            voice_json = job_dir / "voice.json"
+            sb_data = json.loads((job_dir / "storyboard.json").read_text(encoding="utf-8"))
+            asset_ids = sorted({
+                a for sc in sb_data.get("scenes", []) for a in sc.get("asset_ids", [])
+            })
+            state.set_step("policy_gate", "running", "evaluando política comercial")
+            rc, out, err = run([PYTHON, str(SCRIPT_DIR / "scripts" / "v8" / "policy_gate.py"),
+                                "--voice-json", str(voice_json),
+                                "--asset-ids", ",".join(asset_ids)])
+            decision = "BLOCK"
+            try:
+                decision = json.loads(out).get("voice", {}).get("decision", "BLOCK")
+            except Exception:
+                pass
+            if rc == 0 and decision == "ALLOW":
+                state.set_step("policy_gate", "done", "ALLOW (voz verificada)")
+            else:
+                state.set_step("policy_gate", "warn",
+                               "BLOCK: publicación monetizada no permitida (fail-closed)")
+        except Exception as e:
+            state.set_step("policy_gate", "warn", f"error: {str(e)[:200]}")
+
+        # ── 6. Imágenes (compositor V8 vectorial) ─────────────────────────
+        state.set_step("generate_images", "running", "compositor V8")
+        img_cmd = [PYTHON, str(SCRIPT_DIR / "scripts" / "v8" / "compositor.py"),
                     "--storyboard", str(job_dir / "storyboard.json"),
                     "--width", "1920", "--height", "1080",
                     "--frames", "7"]
@@ -275,8 +320,8 @@ def main():
             img_cmd += ["--research", str(research_path)]
         rc, out, err = run(img_cmd)
         if rc != 0:
-            raise RuntimeError(f"generate_images: {err[-500:]}")
-        state.set_step("generate_images", "done", "")
+            raise RuntimeError(f"compositor: {err[-500:]}")
+        state.set_step("generate_images", "done", "vector-v8")
 
         # ── 7. Subtítulos ─────────────────────────────────────────────────
         state.set_step("generate_subtitles", "running", "")

@@ -1,104 +1,120 @@
-# AI Video Factory - Local
+# AI Video Factory - Local (V8)
 
-Fábrica local de videos con IA, basada en Ollama + VoiceStudio (TTS) + Supabase/pgvector + FFmpeg.
+Fábrica local de videos con IA: Ollama (LLM/embeddings) + TTS local +
+Supabase/pgvector (RAG) + FFmpeg, con un **motor visual vectorial
+determinista** para la mano y los overlays de quiromancia.
 
-## Estado del sistema (verificado 2026-09-12)
+- Arquitectura vigente: [`docs/v8/ARQUITECTURA-V8.md`](docs/v8/ARQUITECTURA-V8.md)
+- Resultados de verificación: [`docs/v8/VERIFICACION-V8.md`](docs/v8/VERIFICACION-V8.md)
+- Cambios: [`CHANGELOG.md`](CHANGELOG.md)
+- Contratos V7 homologados: [`docs/v7/`](docs/v7/)
 
-- **GPU detectada:** NVIDIA GeForce GTX 1050 4GB (la doc habla de GTX 1060 6GB; la máquina real es 1050 4GB)
-- **Driver:** 546.29 / CUDA 12.3
-- **Ollama:** 0.32.15 funcionando en CPU (`OLLAMA_LLM_LIBRARY=cpu`)
+## Estado del sistema
+
+- **GPU:** NVIDIA GeForce GTX 1050 4GB (la doc antigua decía GTX 1060 6GB)
+- **Ollama:** en CPU (`OLLAMA_LLM_LIBRARY=cpu`) por crash PTX JIT
 - **Modelos Ollama:** `qwen3.5:4b`, `nomic-embed-text`, `gemma4:*`, `video-factory-qwen`
-- **VoiceStudio:** v0.5.2 instalado (MSI current-user) — **TTS natural en GPU** en `http://127.0.0.1:3900`
-- **Postgres+pgvector:** en Docker (puerto 54322)
-- **n8n:** Docker (puerto 5678)
-- **FFmpeg:** instalado (winget)
+- **TTS:** VoiceStudio (GPU, :3900) con fallback a Windows SAPI
+- **Postgres+pgvector:** Docker (:54322) · **n8n:** Docker (:5678)
+- **FFmpeg:** 8.1.2 en PATH
 
-## TTS — Voz natural (VoiceStudio)
+## Motor visual V8
 
-Voz en español con **selector femenino/masculino**, generada localmente en GPU.
-
-```powershell
-# Generar narración por escena (usa VoiceStudio, fallback a SAPI)
-& "C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" `
-  scripts\generate_tts.py --storyboard data\jobs\default\storyboard.json `
-  --engine auto --gender female
-```
-
-- `--gender female|male` elige la voz.
-- `--engine auto` prueba VoiceStudio y degrada a Windows SAPI si no está corriendo.
-- `voice.json` registra por escena el motor usado (`voicestudio` o `sapi`).
-
-**Nota de licencia:** el motor por defecto OmniVoice usa pesos **CC-BY-NC (no comercial)**. Para producción comercial, instalar CosyVoice 3 (Apache-2.0) o PocketTTS (CC-BY-4.0) desde el Model Catalogue de VoiceStudio.
-
-**Clonación de voz:** requiere ~6 GB de VRAM; en esta máquina (4 GB) da OOM. Pendiente para hardware con más VRAM.
-
-## Arranque rápido
+La mano ya **no** es una foto raster. `scripts/v8/hand_geometry.py` construye
+una mano paramétrica (palma + 5 dedos cápsula + muñeca) en un viewBox de
+1024², con landmarks y anclas de líneas/montes en el mismo espacio. El
+`compositor.py` dibuja por capas y renderiza el texto con Cairo (Segoe UI),
+nunca dentro de una imagen generada.
 
 ```powershell
-# Levanta Docker Desktop + Ollama (CPU) + VoiceStudio (GPU)
-.\scripts\start_all.ps1
+# Verifica que la mano tenga exactamente 5 dedos separados
+python scripts\v8\hand_geometry.py --selftest
+# -> {"side": "L", "finger_runs": 5, "ok": true}
 
-# Opciones
-.\scripts\start_all.ps1 -NoWait        # no espera al final
-.\scripts\start_all.ps1 -SkipDocker    # omite Docker
+# Regenera los SVG maestros (mano izquierda + espejo derecho)
+python scripts\v8\hand_geometry.py --emit
 ```
-
-## Dashboard de monitoreo
-
-```powershell
-# Sirve un panel web local en http://127.0.0.1:8001
-& "C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" scripts\monitor.py
-```
-
-Muestra en tiempo real: Ollama, modelos, Postgres/pgvector, n8n, VoiceStudio, FFmpeg y uso de VRAM. Endpoint JSON: `GET /api/status`.
 
 ## Pipeline E2E
 
 ```
-RAG Ingest → RAG Query → Generate Script → Build Storyboard
-   → Generate TTS (VoiceStudio/SAPI) → Generate Images (Pillow)
-   → Generate Subtitles → Render Video (FFmpeg)
-   → Validate Video (QA) → Generate Short
+extract_pdf -> RAG -> generate_script -> build_storyboard -> research_images
+  -> generate_tts -> policy_gate -> compositor(V8) -> generate_subtitles
+  -> render_video -> validate_video -> generate_short
 ```
 
 ```powershell
-cd F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO
-.\scripts\run_e2e.ps1 -JobId "mi-prueba-001" -Mode canned -Gender female
+# 16:9 + short 9:16
+python scripts\pipeline.py --job-id mi-prueba --topic "línea de la vida" `
+    --duration 15 --mode canned --format test_30s
 ```
 
-Resultado: video 16:9 (1920x1080) + short 9:16 (1080x1920) en `data/renders/`.
+Resultado en `data/renders/<job>.mp4` y `data/renders/<job>_short.mp4`.
+El estado paso a paso queda en `data/jobs/<job>/pipeline_status.json`.
+
+## Arranque y monitoreo
+
+```powershell
+.\scripts\start_all.ps1          # Docker + Ollama (CPU) + VoiceStudio
+.\scripts\start_all.ps1 -NoWait -SkipDocker
+python scripts\monitor.py        # panel web local en http://127.0.0.1:8001
+```
+
+## Puerta comercial (fail-closed)
+
+`config/v7/commercial_policy.yaml` + `scripts/v8/policy_gate.py` bloquean
+la publicación monetizada si la voz o los assets no están verificados.
+
+```powershell
+python scripts\v8\policy_gate.py --voice-json data\jobs\<job>\voice.json `
+    --asset-ids HAND_L_PALM_FRONT_EDITORIAL_V001,LINE_LIFE_L_BASE_V001
+```
+
+**OmniVoice (VoiceStudio) es CC-BY-NC** y **SAPI no está verificado**: ambos
+bloquean. Para monetizar hay que instalar un TTS con licencia comercial
+verificada (p. ej. CosyVoice 3 Apache-2.0 / PocketTTS CC-BY-4.0).
+
+## Validadores
+
+```powershell
+python scripts\v7\validate_asset_registry.py   # registro + huérfanos
+python scripts\v8\asset_registry.py --validate
+python scripts\v7\validate_spanish_text.py     # ortografía de textos visuales
+python scripts\v7\audit_v7.py                  # deuda técnica (rutas, secretos)
+```
+
+## Requisitos
+
+`pycairo`, `Pillow`, `numpy`, `PyYAML`, `jsonschema`, `scipy`, `matplotlib`,
+`psycopg2`, `faster-whisper` (opcional), `python-dotenv`. El intérprete se
+resuelve dinámicamente (`.venv` si tiene dependencias; si no, `sys.executable`).
 
 ## Estructura
 
 ```
-F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO\
-├── README.md
-├── AGENT_INSTRUCTIONS.md
-├── .env, .env.example
-├── requirements.txt, requirements-lock.txt
+<PROJECT_ROOT>\
+├── README.md · CHANGELOG.md · AGENT_INSTRUCTIONS.md · PROJECT_DOCS.md
+├── .env, .env.example · requirements.txt, requirements-lock.txt
 ├── scripts/
-│   ├── start_all.ps1        (arranque rápido de todas las instancias)
-│   ├── monitor.py           (dashboard de monitoreo :8001)
-│   ├── preflight.ps1
-│   ├── healthcheck.ps1
-│   ├── run_e2e.ps1
-│   ├── rag_ingest.py / rag_query.py / generate_embeddings.py
-│   ├── generate_script.py / build_storyboard.py
-│   ├── generate_tts.py      (VoiceStudio + SAPI, selector de género)
-│   ├── generate_images.py / generate_subtitles.py
-│   ├── render_video.py / generate_short.py / validate_video.py
+│   ├── pipeline.py · monitor.py · run_e2e.ps1 · start_all.ps1 · healthcheck.ps1
+│   ├── rag_ingest.py · rag_query.py · topic_extract.py · generate_embeddings.py
+│   ├── generate_script.py · build_storyboard.py · generate_tts.py
+│   ├── generate_subtitles.py · render_video.py · generate_short.py · validate_video.py
+│   ├── v7/   (audit_v7, validate_asset_registry, validate_spanish_text)
+│   └── v8/   (hand_geometry, svg_render, compositor, asset_registry, policy_gate)
 ├── config/
-│   ├── QwenVideoFactory.Modelfile
-│   ├── video_profiles.yaml
-│   └── quality_rules.yaml
-├── data/
-│   ├── documents/    (Markdown para RAG)
-│   ├── jobs/         (Outputs por job)
-│   ├── images/, audio/, subtitles/, renders/
-│   └── logs/
+│   ├── video_profiles.yaml · quality_rules.yaml · *.Modelfile
+│   ├── prompts/hands.yaml
+│   ├── v7/   (commercial_policy, visual_profiles, hardware_profiles, animation_recipes)
+│   └── v8/render_profiles.yaml
+├── schemas/  (asset, prompt, storyboard)
+├── assets/v7/
+│   ├── hands/ · palm_lines/ · zones/ · signs/ · symbols/ · backgrounds/ · mythology/ · history/
+│   └── registry/assets.jsonl
+├── licenses/COMMERCIAL-INVENTORY.csv
+├── docs/v7/  (paquete V7 homologado)  · docs/v8/ (arquitectura y verificación)
+├── data/     (documents, jobs, images, audio, subtitles, renders, logs)
 ├── supabase/migrations/001_rag.sql
-├── workflows/
-│   ├── comfyui/sd15_test.json
-│   └── n8n/VIDEO_FACTORY_E2E_TEST.json
-└── tests/reports/   (Reportes JSON de cada run)
+├── workflows/  (comfyui, n8n)
+└── tests/reports/
 ```

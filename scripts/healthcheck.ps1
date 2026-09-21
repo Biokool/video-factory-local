@@ -1,7 +1,13 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param()
 
 $ErrorActionPreference = "Continue"
+$root = Resolve-Path (Join-Path $PSScriptRoot "..")
+$py = $env:VIDEO_FACTORY_PYTHON
+if (-not $py) {
+    $venvPy = Join-Path $root ".venv\Scripts\python.exe"
+    if (Test-Path $venvPy) { $py = $venvPy } else { $py = "python" }
+}
 $results = @()
 
 function Test-Service {
@@ -72,7 +78,7 @@ except Exception as e:
 "@
     $scriptPath = Join-Path $env:TEMP "check_pgvector.py"
     Set-Content -Path $scriptPath -Value $script -Encoding UTF8
-    & "C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" $scriptPath 2>$null
+    & $py $scriptPath 2>$null
     return $LASTEXITCODE -eq 0
 }
 
@@ -99,21 +105,21 @@ Test-Service "ffprobe" {
 
 Test-Service "Python venv" {
     try {
-        $v = & "C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" --version
+        $v = & $py --version
         return $v
     } catch { return $null }
 }
 
 Test-Service "psycopg2" {
     try {
-        & "C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" -c "import psycopg2; print(psycopg2.__version__)"
+        & $py -c "import psycopg2; print(psycopg2.__version__)"
         return $LASTEXITCODE -eq 0
     } catch { return $null }
 }
 
 Test-Service "Pillow" {
     try {
-        & "C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe" -c "from PIL import Image; print(Image.__version__)"
+        & $py -c "from PIL import Image; print(Image.__version__)"
         return $LASTEXITCODE -eq 0
     } catch { return $null }
 }
@@ -127,11 +133,11 @@ Write-Host "  Healthcheck: $passCount / $total PASS" -ForegroundColor $(if($fail
 if ($failCount -eq 0) {
     Write-Host "  SYSTEM READY" -ForegroundColor Green
 } else {
-    Write-Host "  $failCount servicios requieren atención" -ForegroundColor Red
+    Write-Host "  $failCount servicios requieren atenciÃ³n" -ForegroundColor Red
 }
 Write-Host "========================================" -ForegroundColor Cyan
 
-$reportPath = "F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO\data\logs\healthcheck_$(Get-Date -Format 'yyyyMMdd-HHmmss').json"
+$reportPath = Join-Path $root "data\logs\healthcheck_$(Get-Date -Format 'yyyyMMdd-HHmmss').json"
 $reportDir = Split-Path $reportPath -Parent
 if (-not (Test-Path $reportDir)) { New-Item -ItemType Directory -Path $reportDir -Force | Out-Null }
 @{ timestamp = (Get-Date).ToString("o"); results = $results; pass = $passCount; fail = $failCount } | ConvertTo-Json -Depth 5 | Set-Content -Path $reportPath -Encoding UTF8

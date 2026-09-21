@@ -215,7 +215,7 @@ def build_script_from_topic(topic_context_path: str, topic: str, duration: int,
     # Copiar templates
     scenes = []
     base_scenes = NARRATION_TEMPLATES["scenes"]
-    sec_per_scene = max(8, duration // max(1, len(base_scenes)))
+    sec_per_scene = max(2, round(duration / max(1, len(base_scenes))))
 
     for i, template in enumerate(base_scenes):
         narration = _enrich_narration(template["base_narration"], book_facts, i)
@@ -306,6 +306,36 @@ def extract_json(text: str) -> dict:
     return None
 
 
+def scale_scenes_to_duration(scenes: list, duration: int) -> list:
+    """Ajusta las duraciones de las escenas a la duración pedida.
+
+    Corrige el bug de --mode canned que ignoraba --duration y emitía
+    siempre 4 escenas de 40s. Reparte la duración de forma proporcional
+    con un mínimo de 2s por escena.
+    """
+    if not scenes or duration <= 0:
+        return scenes
+    base_total = sum(s.get("duration_sec", 0) for s in scenes) or len(scenes)
+    n = len(scenes)
+    min_sec = 2
+    if duration < n * min_sec:
+        # recortar número de escenas si no alcanza el mínimo por escena
+        keep = max(1, duration // min_sec)
+        scenes = scenes[:keep]
+        n = len(scenes)
+        base_total = sum(s.get("duration_sec", 0) for s in scenes) or n
+    out = []
+    for s in scenes:
+        c = dict(s)
+        share = s.get("duration_sec", 0) / base_total if base_total else 1.0 / n
+        c["duration_sec"] = max(min_sec, round(duration * share, 1))
+        out.append(c)
+    # ajuste fino del último para cuadrar la suma
+    diff = duration - sum(s["duration_sec"] for s in out)
+    out[-1]["duration_sec"] = max(min_sec, round(out[-1]["duration_sec"] + diff, 1))
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--topic", default="línea del corazón")
@@ -338,10 +368,12 @@ def main():
             print(f"    Scene {s['id']}: {s['narration'][:80]}...")
     elif args.mode == "canned":
         script = CANNED_SCRIPT.copy()
-        script["scenes"] = [s.copy() for s in CANNED_SCRIPT["scenes"]]
+        script["scenes"] = scale_scenes_to_duration(
+            [s.copy() for s in CANNED_SCRIPT["scenes"]], args.duration)
         script["source_chunks_used"] = [c["id"] for c in rag_chunks]
         script["generated_at"] = datetime.now().isoformat()
-        print(f"[{datetime.now().isoformat()}] Guion pre-canned ({len(script['scenes'])} escenas)")
+        print(f"[{datetime.now().isoformat()}] Guion pre-canned "
+              f"({len(script['scenes'])} escenas, {sum(s['duration_sec'] for s in script['scenes']):.0f}s)")
     else:
         if topic_context:
             prompt = build_prompt_from_topic_context(topic_context, args.topic, args.duration, args.instructions)

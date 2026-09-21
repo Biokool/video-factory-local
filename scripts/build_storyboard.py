@@ -83,6 +83,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--script", default=str(SCRIPT_DIR / "data" / "jobs" / "default" / "script.json"))
     parser.add_argument("--output-dir", default=str(SCRIPT_DIR / "data" / "jobs" / "default"))
+    parser.add_argument("--topic", default=None)
     args = parser.parse_args()
 
     script_path = Path(args.script)
@@ -91,9 +92,15 @@ def main():
 
     script = json.loads(script_path.read_text(encoding="utf-8"))
     scenes = script["scenes"]
+    if args.topic:
+        script["topic"] = args.topic
 
     job_id = output_dir.name
     project_id = job_id if job_id != "default" else f"test-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+
+    topic = script.get("topic") or script.get("title", "quiromancia")
+    commercial_mode = bool(script.get("commercial_mode", True))
+    default_assets = ["HAND_L_PALM_FRONT_EDITORIAL_V001", "LINE_LIFE_L_BASE_V001"]
 
     manifest = {
         "project_id": project_id,
@@ -101,6 +108,16 @@ def main():
         "title": script.get("title", ""),
         "hook": script.get("hook", ""),
         "target_duration_sec": sum(s["duration_sec"] for s in scenes),
+        "video": {
+            "topic": str(topic)[:160],
+            "language": "es-MX",
+            "commercial_mode": commercial_mode,
+            "profile": "test_30s",
+            "title": script.get("title", ""),
+            "hook": script.get("hook", ""),
+            "project_id": project_id,
+            "target_duration_sec": sum(s["duration_sec"] for s in scenes),
+        },
         "scenes": [],
     }
 
@@ -109,6 +126,10 @@ def main():
         scene_id = scene["id"]
         scene_type = infer_scene_type(scene, scene_id, len(scenes))
         visual_prompt = get_visual_prompt(scene, scene_type)
+        source_refs = scene.get("source_refs") or [
+            {"pdf_page": int(scene.get("pdf_page", 1) or 1)}
+        ]
+        asset_ids = scene.get("asset_ids") or default_assets
 
         manifest["scenes"].append({
             "id": scene_id,
@@ -122,6 +143,10 @@ def main():
             "effect": "slow_zoom_in",
             "source_chunk_ids": scene.get("source_chunk_ids", []),
             "scene_type": scene_type,
+            "concept_ids": scene.get("concept_ids") or scene.get("key_concepts", []),
+            "source_refs": source_refs,
+            "asset_ids": asset_ids,
+            "animation": scene.get("animation", "draw_line"),
         })
         consolidated_narration.append(scene.get("narration") or scene.get("base_narration", ""))
 
@@ -134,6 +159,20 @@ def main():
 
     storyboard_path = output_dir / "storyboard.json"
     storyboard_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    # Validacion del contrato V7/V8 (se ejecuta en el pipeline, no solo a mano)
+    schema_path = SCRIPT_DIR / "schemas" / "storyboard.schema.json"
+    if schema_path.exists():
+        try:
+            import jsonschema
+            schema = json.loads(schema_path.read_text(encoding="utf-8"))
+            jsonschema.validate(instance=manifest, schema=schema)
+            print("Schema storyboard: PASS")
+        except ImportError:
+            print("Schema storyboard: omitido (jsonschema no instalado)")
+        except Exception as e:
+            print(f"Schema storyboard: FAIL -> {e}", file=sys.stderr)
+            sys.exit(2)
 
     print(f"Manifest guardado en {manifest_path}")
     print(f"Storyboard guardado en {storyboard_path}")

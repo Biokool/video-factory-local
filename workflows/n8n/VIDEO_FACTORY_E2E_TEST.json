@@ -81,7 +81,7 @@
     },
     {
       "parameters": {
-        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/build_storyboard.py --output-dir data\\jobs\\{{$json[\"job_id\"]}}"
+        "command": "python scripts/build_storyboard.py --output-dir data\\jobs\\{{$json[\"job_id\"]}}"
       },
       "name": "Build Storyboard",
       "type": "n8n-nodes-base.executeCommand",
@@ -91,7 +91,7 @@
     },
     {
       "parameters": {
-        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/generate_tts.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json"
+        "command": "python scripts/generate_tts.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json"
       },
       "name": "Generate TTS",
       "type": "n8n-nodes-base.executeCommand",
@@ -101,7 +101,7 @@
     },
     {
       "parameters": {
-        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/generate_images.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json"
+        "command": "python scripts/v8/compositor.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json"
       },
       "name": "Generate Images",
       "type": "n8n-nodes-base.executeCommand",
@@ -111,7 +111,7 @@
     },
     {
       "parameters": {
-        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/generate_subtitles.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json --voice data\\jobs\\{{$json[\"job_id\"]}}\\voice.json"
+        "command": "python scripts/generate_subtitles.py --storyboard data\\jobs\\{{$json[\"job_id\"]}}\\storyboard.json --voice data\\jobs\\{{$json[\"job_id\"]}}\\voice.json"
       },
       "name": "Generate Subtitles",
       "type": "n8n-nodes-base.executeCommand",
@@ -121,7 +121,7 @@
     },
     {
       "parameters": {
-        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/render_video.py --manifest data\\jobs\\{{$json[\"job_id\"]}}\\manifest.json --output data\\renders\\{{$json[\"job_id\"]}}.mp4 --burn-subtitles"
+        "command": "python scripts/render_video.py --manifest data\\jobs\\{{$json[\"job_id\"]}}\\manifest.json --output data\\renders\\{{$json[\"job_id\"]}}.mp4 --burn-subtitles"
       },
       "name": "Render Video",
       "type": "n8n-nodes-base.executeCommand",
@@ -131,7 +131,7 @@
     },
     {
       "parameters": {
-        "command": "cd F:\\__AGENCIA_AIMA\\D_OLLAMA_VIDEO && python scripts/validate_video.py --video data\\renders\\{{$json[\"job_id\"]}}.mp4 --job-dir data\\jobs\\{{$json[\"job_id\"]}}"
+        "command": "python scripts/validate_video.py --video data\\renders\\{{$json[\"job_id\"]}}.mp4 --job-dir data\\jobs\\{{$json[\"job_id\"]}}"
       },
       "name": "Validate Video",
       "type": "n8n-nodes-base.executeCommand",

@@ -1,0 +1,10 @@
+component,type,license,commercial_use,status,notes
+Ollama,software,MIT,YES,VERIFY_VERSION,Archive exact license
+Qwen3.5-4B,model,Apache-2.0,YES,VERIFY_VERSION,Archive model card and hash
+OmniVoice,weights,CC-BY-NC,NO,BLOCKED,Do not publish monetized output
+CosyVoice,software_and_weights,VERIFY,VERIFY,PENDING,Verify exact release and weights
+PocketTTS,software_and_weights,VERIFY,VERIFY,PENDING,Verify exact release and weights
+Piper,software,GPL-3.0,YES,VERIFY_VERSION,Voice model separately
+FFmpeg,software,LGPL_OR_GPL,VERIFY,PENDING,Store ffmpeg -buildconf
+Openverse_asset,asset,PER_ITEM,VERIFY,PENDING,Store creator URL and attribution
+Project_SVG,asset,Project-owned,YES,VERIFIED,Generated deterministically by project

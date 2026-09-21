@@ -69,9 +69,27 @@ def get_audio_wav_duration(wav_path: Path) -> float:
 
 
 def resolve_path(job_dir: Path, rel: str) -> Path:
+    """Resuelve una ruta relativa del storyboard de forma segura.
+
+    Rechaza rutas absolutas, UNC y URLs. Permite rutas relativas (incluido
+    ../) SOLO si la ruta resuelta permanece dentro de la raíz del proyecto,
+    de modo que el storyboard no pueda escapar del árbol del proyecto.
+    """
+    import re
+    if not rel:
+        raise ValueError("ruta vacia")
+    if re.match(r"^([A-Za-z]:[\\/]|\\\\)", rel):
+        raise ValueError(f"ruta absoluta/UNC prohibida: {rel}")
+    if re.match(r"^https?://", rel, re.I):
+        raise ValueError(f"ruta remota prohibida: {rel}")
+    root = SCRIPT_DIR.resolve()
     if rel.startswith("../"):
-        return (job_dir / rel).resolve()
-    return job_dir.parent.parent / rel.lstrip("./")
+        p = (job_dir / rel).resolve()
+    else:
+        p = (job_dir.parent.parent / rel.lstrip("./")).resolve()
+    if root not in p.parents and p != root:
+        raise ValueError(f"ruta fuera del proyecto: {p}")
+    return p
 
 
 def render_frame_segment(frame_path: Path, duration: float, W: int, H: int,
@@ -140,7 +158,7 @@ def render_scene_multiframe(scene, frames_dir: Path, frames: list,
     concat_file = scene_temp / "concat.txt"
     with open(concat_file, "w", encoding="utf-8") as f:
         for seg in segments:
-            f.write(f"file '{seg.as_posix()}'\n")
+            f.write(f"file '{seg.resolve().as_posix()}'\n")
 
     scene_video_noaudio = scene_temp / "scene_noaudio.mp4"
     cmd_concat = [
@@ -247,21 +265,36 @@ def concatenate_scenes(scene_videos, profile, output_path, burn_subtitles=False,
     list_file = output_path.parent / "concat_list.txt"
     with open(list_file, "w", encoding="utf-8") as f:
         for sv in scene_videos:
-            sv = sv.replace("\\", "/")
+            sv = Path(sv).resolve().as_posix()
             f.write(f"file '{sv}'\n")
 
-    final_audio = f"-c:a {profile['audio_codec']} -ar 44100 -ac 2 -b:a {profile.get('audio_bitrate', '192k')}"
+    cmd = [
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+        "-i", str(list_file.resolve()),
+    ]
     if burn_subtitles and subtitle_path and subtitle_path.exists():
-        sub_path_escaped = str(subtitle_path).replace("\\", "/").replace(":", "\\:")
-        vf = f"subtitles='{sub_path_escaped}':si=0:force_style='FontName=Arial,FontSize=22,PrimaryColour=&HFFFFFF,OutlineColour=&H000000,Outline=2'"
-        cmd = f"ffmpeg -y -f concat -safe 0 -i \"{list_file}\" -vf {vf} -c:v {profile['video_codec']} -preset {profile.get('preset', 'medium')} -crf {profile.get('crf', 20)} -c:a {profile['audio_codec']} -ar 44100 -ac 2 -b:a {profile.get('audio_bitrate', '192k')} -pix_fmt {profile['pix_fmt']} \"{output_path}\""
-    else:
-        cmd = f"ffmpeg -y -f concat -safe 0 -i \"{list_file}\" -c:v {profile['video_codec']} -preset {profile.get('preset', 'medium')} -crf {profile.get('crf', 20)} -c:a {profile['audio_codec']} -ar 44100 -ac 2 -b:a {profile.get('audio_bitrate', '192k')} -pix_fmt {profile['pix_fmt']} \"{output_path}\""
+        # Ruta con ':' escapado y barras normales para el filtergraph.
+        sub = subtitle_path.resolve().as_posix().replace(":", "\\:")
+        style = ("FontName=Arial,FontSize=22,PrimaryColour=&HFFFFFF,"
+                 "OutlineColour=&H000000,Outline=2")
+        vf = f"subtitles='{sub}':si=0:force_style='{style}'"
+        cmd += ["-vf", vf]
+    cmd += [
+        "-c:v", profile["video_codec"],
+        "-preset", profile.get("preset", "medium"),
+        "-crf", str(profile.get("crf", 20)),
+        "-c:a", profile["audio_codec"],
+        "-ar", str(profile.get("audio_samplerate", 44100)),
+        "-ac", "2",
+        "-b:a", profile.get("audio_bitrate", "192k"),
+        "-pix_fmt", profile["pix_fmt"],
+        str(output_path.resolve()),
+    ]
 
     print(f"  Concatenando {len(scene_videos)} escenas...")
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
     if r.returncode != 0:
-        print(f"  Concat error: {r.stderr[:1000]}")
+        print(f"  Concat error: {r.stderr[-1000:]}")
         return False
     return True
 

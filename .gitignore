@@ -6,16 +6,26 @@ env/
 # Data (archivos generados)
 data/jobs/
 data/images/
+data/images_test/
 data/audio/
 data/subtitles/
 data/renders/
 data/research/
 data/documents/
 data/logs/
+data/temp/
 
-# Assets grandes
+# Assets grandes / rechazados
 assets/hands/candidate_*.jpg
 assets/hands/candidate_*.png
+assets/rejected/
+
+# Fuente local (manual PDF): no se versiona por tamaño
+Manual_Quiromancia_2026.pdf
+
+# Notas de sesión
+validación_claude.md
+validacion_claude.md
 
 # Temp
 __pycache__/

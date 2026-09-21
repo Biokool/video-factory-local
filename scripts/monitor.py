@@ -38,7 +38,20 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent
-PYTHON = r"C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe"
+
+
+def resolve_python() -> str:
+    venv_py = SCRIPT_DIR / ".venv" / "Scripts" / "python.exe"
+    if venv_py.exists():
+        probe = subprocess.run(
+            [str(venv_py), "-c", "import cairo, PIL, yaml"],
+            capture_output=True, text=True)
+        if probe.returncode == 0:
+            return str(venv_py)
+    return sys.executable
+
+
+PYTHON = resolve_python()
 DOCS_DIR = SCRIPT_DIR / "data" / "documents"
 JOBS_DIR = SCRIPT_DIR / "data" / "jobs"
 RENDERS_DIR = SCRIPT_DIR / "data" / "renders"

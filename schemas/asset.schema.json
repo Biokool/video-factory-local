@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "asset_id",
+    "file",
+    "type",
+    "status",
+    "license"
+  ],
+  "properties": {
+    "asset_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9_]+_V[0-9]{3}$"
+    },
+    "file": {
+      "type": "string",
+      "pattern": "^assets/v7/"
+    },
+    "type": {
+      "enum": [
+        "HAND",
+        "LINE",
+        "ZONE",
+        "SIGN",
+        "SYMBOL",
+        "BACKGROUND",
+        "MYTH",
+        "HISTORY"
+      ]
+    },
+    "status": {
+      "enum": [
+        "PENDING",
+        "GENERATING",
+        "VALIDATING",
+        "APPROVED",
+        "REJECTED",
+        "FROZEN"
+      ]
+    },
+    "license": {
+      "type": "object",
+      "required": [
+        "commercial_use",
+        "status"
+      ],
+      "properties": {
+        "commercial_use": {
+          "enum": [
+            "YES",
+            "NO",
+            "VERIFY"
+          ]
+        },
+        "status": {
+          "enum": [
+            "VERIFIED",
+            "PENDING",
+            "REJECTED"
+          ]
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

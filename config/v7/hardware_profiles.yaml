@@ -1,0 +1,17 @@
+profiles:
+  legacy_pascal_4gb:
+    gpu: NVIDIA_GTX_1050_4GB
+    llm_backend: cpu
+    llm_context: 8192
+    concurrent_gpu_consumers: 1
+    image_generation:
+      optional: true
+      family: sd15
+      width: 512
+      height: 512
+      batch: 1
+      sdxl: false
+      flux: false
+    render:
+      preferred: libx264
+      nvenc: probe_then_use

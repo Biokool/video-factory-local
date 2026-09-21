@@ -1,0 +1,9 @@
+prompts:
+  - prompt_id: PROMPT_HAND_EDITORIAL_FRONT_V001
+    asset_id: HAND_L_PALM_FRONT_EDITORIAL_V001
+    locale: es-MX
+    expected_finger_count: 5
+    text_in_image: false
+    positive: "Ilustración editorial educativa de una sola mano izquierda abierta vista exactamente por la palma, exactamente cinco dedos completos, separados y anatómicamente coherentes; muñeca completa; superficie limpia para overlays SVG; fondo transparente; sin texto ni símbolos."
+    negative: "dedos extra, dedo faltante, dedos fusionados, dedos duplicados, mano doble, dedos cortados, texto, letras, números, marca de agua"
+    status: APPROVED

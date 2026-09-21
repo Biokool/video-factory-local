@@ -1,7 +1,7 @@
 # Especificación de Diseño: Voz Natural con VoiceStudio + SAPI
 
 - **Fecha:** 2026-09-12 (rev. 3 — implementación verificada)
-- **Proyecto:** F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO
+- **Proyecto:** <PROJECT_ROOT>
 - **Estado:** Implementado y verificado
 
 ---
@@ -29,7 +29,7 @@ Narración **natural** en español mediante una **cadena de motores TTS con degr
 ## 2. Arquitectura de Componentes
 
 ### 2.0 VoiceStudio (motor principal — voz natural)
-- **Instalación:** MSI x64 current-user desde https://github.com/debpalash/VoiceStudio/releases/latest (instalado en `C:\Users\mauri\AppData\Local\VoiceStudio (Current User)`).
+- **Instalación:** MSI x64 current-user desde https://github.com/debpalash/VoiceStudio/releases/latest (instalado en `%LOCALAPPDATA%\VoiceStudio (Current User)`).
 - **API local:** backend FastAPI en `http://localhost:3900` (solo loopback, sin API key en localhost).
 - **Endpoint de síntesis:** `POST /v1/audio/speech`
   ```json

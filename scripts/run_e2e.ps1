@@ -2,15 +2,20 @@
 param(
     [string]$JobId = "e2e-001",
     [string]$Mode = "canned",
-    [string]$OutputVideo = "F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO\data\renders\e2e-001.mp4",
+    [string]$OutputVideo = "",
     [string]$Gender = "female"
 )
 
 $ErrorActionPreference = "Continue"
-$py = "C:\Users\mauri\AppData\Local\hermes\hermes-agent\venv\Scripts\python.exe"
-$root = "F:\__AGENCIA_AIMA\D_OLLAMA_VIDEO"
-$jobDir = "$root\data\jobs\$JobId"
-$logDir = "$root\data\logs"
+$root = Resolve-Path (Join-Path $PSScriptRoot "..")
+$py = $env:VIDEO_FACTORY_PYTHON
+if (-not $py) {
+    $venvPy = Join-Path $root ".venv\Scripts\python.exe"
+    if (Test-Path $venvPy) { $py = $venvPy } else { $py = "python" }
+}
+if (-not $OutputVideo) { $OutputVideo = Join-Path $root "data\renders\$JobId.mp4" }
+$jobDir = Join-Path $root "data\jobs\$JobId"
+$logDir = Join-Path $root "data\logs"
 
 New-Item -ItemType Directory -Force -Path $jobDir | Out-Null
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
@@ -69,8 +74,8 @@ Run-Step "5. Generate TTS Audio" {
     if ($LASTEXITCODE -ne 0) { throw "TTS failed" }
 }
 
-Run-Step "6. Generate Images" {
-    & $py "$root\scripts\generate_images.py" --storyboard "$jobDir\storyboard.json" --width 1280 --height 720
+Run-Step "6. Generate Images (V8 compositor)" {
+    & $py "$root\scripts\v8\compositor.py" --storyboard "$jobDir\storyboard.json" --width 1280 --height 720
     if ($LASTEXITCODE -ne 0) { throw "Images failed" }
 }
 

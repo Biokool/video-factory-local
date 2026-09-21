@@ -1,0 +1,5 @@
+animations:
+  draw_line: {duration_min: 0.8, duration_max: 6.0, deterministic: true}
+  highlight: {duration_min: 0.5, duration_max: 4.0, deterministic: true}
+  slow_zoom: {scale_from: 1.0, scale_to: 1.06, deterministic: true}
+  crossfade: {duration_min: 0.2, duration_max: 1.2, deterministic: true}

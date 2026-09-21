@@ -28,6 +28,22 @@ from datetime import datetime
 
 SCRIPT_DIR = Path(__file__).resolve().parent.parent
 
+# Procedencia de las voces (para la puerta comercial fail-closed).
+VOICE_PROVENANCE = {
+    "voicestudio": {
+        "voice_model": "OmniVoice",
+        "voice_id": "alloy",
+        "license_status": "BLOCKED",   # CC-BY-NC, no monetizable
+        "commercial_use": "NO",
+    },
+    "sapi": {
+        "voice_model": "Microsoft SAPI",
+        "voice_id": "system-default",
+        "license_status": "UNVERIFIED",
+        "commercial_use": "UNVERIFIED",
+    },
+}
+
 VOICESTUDIO_HEALTH_PATH = "/.well-known/voicestudio-speech"
 VOICESTUDIO_SPEECH_PATH = "/v1/audio/speech"
 
@@ -178,6 +194,12 @@ def main():
 
         duration = get_wav_duration(out_path)
         size = out_path.stat().st_size
+        prov = dict(VOICE_PROVENANCE.get(engine_used, {}))
+        if engine_used == "voicestudio":
+            prov["voice_id"] = args.voicestudio_voice
+            prov["voice_model"] = os.environ.get("VOICESTUDIO_MODEL", prov.get("voice_model", "OmniVoice"))
+        elif engine_used == "sapi":
+            prov["voice_id"] = args.voice or "system-default"
         print(f"  Scene {scene_id}: {out_path.name} ({duration:.1f}s, {size:,} bytes) [{engine_used}]")
         voice_meta.append({
             "scene_id": scene_id,
@@ -187,6 +209,10 @@ def main():
             "size_bytes": size,
             "voice_engine": engine_used,
             "gender": args.gender if engine_used == "voicestudio" else None,
+            "voice_model": prov.get("voice_model"),
+            "voice_id": prov.get("voice_id"),
+            "license_status": prov.get("license_status"),
+            "commercial_use": prov.get("commercial_use"),
             "created_at": datetime.now().isoformat()
         })
 

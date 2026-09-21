@@ -1,0 +1,9 @@
+mode: commercial_monetized
+fail_closed: true
+network_during_render: false
+allow_unknown_license: false
+blocked_models:
+  - OmniVoice
+required_asset_status: APPROVED
+required_license_status: VERIFIED
+human_approval_before_publish: true
