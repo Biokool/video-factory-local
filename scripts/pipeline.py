@@ -353,17 +353,28 @@ def main():
         state.set_step("validate_video", "done" if rc == 0 else "warn",
                        (out or err).strip()[-300:])
 
-        # ── 10. Short ─────────────────────────────────────────────────────
+        # ── 10. Short nativo 9:16 ─────────────────────────────────────────
         short_path = None
         if not args.skip_short:
-            state.set_step("generate_short", "running", "")
+            state.set_step("generate_short", "running", "render nativo 9:16")
             short_path = SCRIPT_DIR / "data" / "renders" / f"{args.job_id}_short.mp4"
-            rc, out, err = run([PYTHON, str(SCRIPT_DIR / "scripts" / "generate_short.py"),
-                                "--video", str(video_path), "--output", str(short_path)])
+            portrait_dir = job_dir / "images_portrait"
+            rc, out, err = run([PYTHON, str(SCRIPT_DIR / "scripts" / "v8" / "compositor.py"),
+                                "--storyboard", str(job_dir / "storyboard.json"),
+                                "--width", "1080", "--height", "1920",
+                                "--frames", "7", "--output-dir", str(portrait_dir)])
             if rc != 0:
-                state.set_step("generate_short", "warn", err[-300:])
+                state.set_step("generate_short", "warn", f"compositor 9:16: {err[-200:]}")
             else:
-                state.set_step("generate_short", "done", str(short_path))
+                rc, out, err = run([PYTHON, str(SCRIPT_DIR / "scripts" / "render_video.py"),
+                                    "--manifest", str(job_dir / "manifest.json"),
+                                    "--output", str(short_path),
+                                    "--profile", "short",
+                                    "--burn-subtitles"])
+                if rc != 0:
+                    state.set_step("generate_short", "warn", err[-300:])
+                else:
+                    state.set_step("generate_short", "done", str(short_path))
         else:
             state.set_step("generate_short", "skipped", "")
 

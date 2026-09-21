@@ -3,17 +3,18 @@
 Todos los comandos se ejecutan desde la raíz del proyecto con el intérprete
 con dependencias. Resultados obtenidos en la máquina de producción.
 
-## 1. Mano vectorial — 5 dedos
+## 1. Mano vectorial — 5 dedos (V8.1)
 
 ```
 python scripts/v8/hand_geometry.py --selftest
-{"side": "L", "finger_runs": 5, "ok": true}
+{"side": "L", "digits": 5, "ok": true, "path_points": 67}
+# espejo derecho:
+{'side': 'R', 'digits': 5, 'ok': True, 'path_points': 67}
 ```
 
-Máscara rasterizada: exactamente 5 tramos de dedo en la banda superior
-(índice, medio, anular, meñique, pulgar), puntas redondeadas, muñeca
-completa y pulgar a la derecha (mano izquierda palmar). El frame compuesto
-reproduce los 5 dedos separados.
+La mano se construye por primitivas anatómicas y se traza a un único path
+Bézier cerrado (línea exterior continua, sin trazos internos). QA: 5
+componentes con punta por encima de la palma, en ambas lateralidades.
 
 ## 2. Registro de assets
 
@@ -60,23 +61,24 @@ El vínculo chunk↔sección se resuelve por **solapamiento de rangos**
 ## 6. Pipeline E2E (canned, 15 s)
 
 ```
-python scripts/pipeline.py --job-id v8-e2e-final --topic "linea de la vida" \
+python scripts/pipeline.py --job-id demo-v8-final --topic "linea de la vida" \
     --duration 15 --mode canned --format test_30s
-{"status": "done", "video": ".../v8-e2e-final.mp4", "short": ".../v8-e2e-final_short.mp4"}
+{"status": "done", "video": ".../demo-v8-final.mp4", "short": ".../demo-v8-final_short.mp4"}
 ```
 
 Estados de los pasos: todos `done`, salvo `policy_gate: warn` (BLOCK por
 SAPI, correcto) y `extract_pdf/rag_ingest: skipped` (sin PDF nuevo).
 
-## 7. Audio de ambos formatos
+## 7. Audio y encuadre de ambos formatos
 
 ```
-ffprobe 16:9  -> aac 44100 Hz 2 canales
-ffprobe 9:16  -> aac 44100 Hz 2 canales  (1080x1920)
+ffprobe 16:9  -> 1920x1080, aac 44100 Hz 2 canales
+ffprobe 9:16  -> 1080x1920, aac 44100 Hz 2 canales
 ```
 
-Antes, el short salía `48000 Hz 1 canal`; ahora lee el perfil YAML
-(`config/video_profiles.yaml`).
+El short 9:16 se compone y renderiza **nativo** (no es un recorte del 16:9),
+así la mano nunca queda cortada. El compositor encuadra la mano por su
+`content_bbox()` para que llene el alto del cuadro.
 
 ## 8. Auditoría V7
 

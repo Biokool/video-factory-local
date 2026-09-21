@@ -1,5 +1,28 @@
 # Changelog
 
+## [V8.1] — Mano de alta calidad y encuadre
+
+### Corregido
+- **Mano deforme:** el motor V8.0 unía cápsulas de ancho constante, lo que
+  producía un blob con dedos cortos y palma desplazada. Ahora
+  `hand_geometry.py` construye primitivas anatómicas (palma trapezoidal, 4
+  dedos afinados con punta redonda, pulgar y muñeca) y **traza el contorno
+  exterior a un único path Bézier cerrado** (marching squares → Douglas-
+  Peucker → Catmull-Rom). Línea exterior continua, sin trazos internos.
+- **Mano pequeña:** el compositor escalaba por el viewBox completo, pero la
+  mano ocupa una franja. Ahora usa `content_bbox()` y la encuadra por su
+  contenido real (llena el alto, centrada).
+- **Short cortado a la mitad:** el short se recortaba del 16:9 y cortaba la
+  mano. Ahora se **compone y renderiza nativo 1080×1920**.
+- **Fotos de concepto feas sobre la mano:** se retiran del compositor
+  (el diseño V8 usa imágenes solo para fondos/historia/mitología).
+- Líneas y montes más gruesos y con brillo; etiquetas dentro del cuadro.
+
+### Añadido
+- QA robusta de dedos por componentes conectados (resta la palma y exige 5
+  componentes con punta por encima). Verificado en izquierda y derecha.
+- `content_bbox()` en `hand_geometry.py`.
+
 ## [V8] — Motor visual vectorial y homologación V7
 
 ### Añadido

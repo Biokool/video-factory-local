@@ -267,6 +267,18 @@ def _hand_to_screen(pt, box):
     return (x + pt[0] / hg.VIEWBOX * w, y + pt[1] / hg.VIEWBOX * h)
 
 
+def _box_for_content(cx, cy, target_h):
+    """Caja (x,y,w,h) del viewBox que encuadra el CONTENIDO de la mano
+    centrado en (cx,cy) con altura target_h. Corrige que la mano ocupe
+    solo una franja del viewBox (por eso antes salía pequeña)."""
+    x0, y0, x1, y1 = hg.content_bbox()
+    ch = (y1 - y0) or 1.0
+    s = target_h / ch
+    bx = cx - (x0 + x1) / 2.0 * s
+    by = cy - (y0 + y1) / 2.0 * s
+    return (bx, by, hg.VIEWBOX * s, hg.VIEWBOX * s)
+
+
 def draw_hand(ctx, box, side="L", alpha=1.0):
     x, y, w, h = box
     svg = HAND_SVG_L if side.upper() == "L" else HAND_SVG_R
@@ -291,16 +303,16 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
     ctx.set_source_surface(bg, 0, 0)
     ctx.paint()
 
-    # capa: hand
-    hand_h = int(H * (0.66 if sid == 3 else 0.74))
-    hand_w = hand_h
+    # capa: hand (encuadrada por su contenido real; usa el ancho disponible)
+    bx0, by0, bx1, by1 = hg.content_bbox()
+    aspect = (bx1 - bx0) / max(1.0, (by1 - by0))
     if sid == 3:
-        gap = int(W * 0.03)
-        x0 = int(W * 0.5) - hand_w - gap // 2
-        boxes = [(x0, int(H * 0.20), hand_w, hand_h),
-                 (x0 + hand_w + gap, int(H * 0.20), hand_w, hand_h)]
+        th = min(H * 0.80, (W * 0.44) / aspect)
+        boxes = [_box_for_content(W * 0.29, H * 0.53, th),
+                 _box_for_content(W * 0.71, H * 0.53, th)]
     else:
-        boxes = [(int(W * 0.34) - hand_w // 2, int(H * 0.18), hand_w, hand_h)]
+        th = min(H * 0.94, (W * 0.94) / aspect)
+        boxes = [_box_for_content(W * 0.5, H * 0.52, th)]
 
     for i, box in enumerate(boxes):
         draw_hand(ctx, box, side=("R" if (sid == 3 and i == 1) else side))
@@ -312,51 +324,56 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
         box = boxes[0]
         order = ["corazon", "cabeza", "destino", "vida"]
         for i, name in enumerate(order):
-            start = 0.08 + i * 0.18
+            start = 0.06 + i * 0.16
             frac = max(0.0, min(1.0, (prog - start) / 0.20))
             pts = [_hand_to_screen(p, box) for p in lines[name]]
             draw_partial(ctx, pts, frac, LCOL[name],
-                         lw=8 if name == cfg["hl"] else 5,
-                         dash=DASH[name], glow=(name == cfg["hl"]))
+                         lw=13 if name == cfg["hl"] else 8,
+                         dash=DASH[name], glow=True)
         ma = max(0.0, min(1.0, (prog - 0.50) / 0.2))
         if ma > 0:
             for name, (mx, my, mr) in mounts.items():
                 sx, sy = _hand_to_screen((mx, my), box)
                 sr = mr / hg.VIEWBOX * box[2]
                 c = MCOL[name]
-                ctx.set_source_rgba(c[0] * 0.3, c[1] * 0.3, c[2] * 0.3, 0.5 * ma)
-                ctx.arc(sx, sy, sr * 1.8, 0, 6.283)
+                ctx.set_source_rgba(c[0], c[1], c[2], 0.30 * ma)
+                ctx.arc(sx, sy, sr * 1.5, 0, 6.283)
                 ctx.fill()
-                ctx.set_source_rgba(c[0], c[1], c[2], 0.85 * ma)
-                ctx.arc(sx, sy, sr * (0.5 + 0.5 * ma), 0, 6.283)
+                ctx.set_source_rgba(c[0], c[1], c[2], 0.90 * ma)
+                ctx.arc(sx, sy, sr, 0, 6.283)
                 ctx.fill()
-        la = max(0.0, min(1.0, (prog - 0.72) / 0.2))
+                ctx.set_source_rgba(1, 1, 1, 0.85 * ma)
+                ctx.set_line_width(max(2.0, box[2] / 350.0))
+                ctx.arc(sx, sy, sr, 0, 6.283)
+                ctx.stroke()
+        la = max(0.0, min(1.0, (prog - 0.68) / 0.2))
         if la > 0:
-            box = boxes[0]
-            _label(ctx, box[0] + box[2] + 25, box[1] + 30,
+            lx = max(24.0, box[0] - 330.0)
+            rx = min(W - 300.0, box[0] + box[2] + 24.0)
+            _label(ctx, rx, box[1] + 40,
                    *_hand_to_screen(mounts["venus"][:2], box),
-                   "Monte de Venus", 17, alpha=la)
-            _label(ctx, box[0] - 300, box[1] + 60,
+                   "Monte de Venus", 18, alpha=la)
+            _label(ctx, lx, box[1] + 90,
                    *_hand_to_screen(lines["vida"][len(lines["vida"]) // 2], box),
-                   "Línea de la Vida", 17, col=LCOL["vida"], alpha=la)
-            _label(ctx, box[0] - 300, box[1] + 130,
+                   "Línea de la Vida", 18, col=LCOL["vida"], alpha=la)
+            _label(ctx, lx, box[1] + 170,
                    *_hand_to_screen(lines["corazon"][len(lines["corazon"]) // 2], box),
-                   "Línea del Corazón", 17, col=LCOL["corazon"], alpha=la)
-            _label(ctx, box[0] - 300, box[1] + 200,
+                   "Línea del Corazón", 18, col=LCOL["corazon"], alpha=la)
+            _label(ctx, lx, box[1] + 250,
                    *_hand_to_screen(lines["cabeza"][len(lines["cabeza"]) // 2], box),
-                   "Línea de la Cabeza", 17, col=LCOL["cabeza"], alpha=la)
-            _label(ctx, box[0] + box[2] + 25, box[1] + 100,
+                   "Línea de la Cabeza", 18, col=LCOL["cabeza"], alpha=la)
+            _label(ctx, rx, box[1] + 120,
                    *_hand_to_screen(mounts["jupiter"][:2], box),
-                   "Monte de Júpiter", 17, alpha=la)
-            _label(ctx, box[0] + box[2] + 25, box[1] + 170,
+                   "Monte de Júpiter", 18, alpha=la)
+            _label(ctx, rx, box[1] + 200,
                    *_hand_to_screen(mounts["saturno"][:2], box),
-                   "Monte de Saturno", 17, alpha=la)
+                   "Monte de Saturno", 18, alpha=la)
 
     elif sid == 2:
         box = boxes[0]
         pts = [_hand_to_screen(p, box) for p in lines["vida"]]
         draw_partial(ctx, pts, min(1.0, prog * 2.5), LCOL["vida"],
-                     lw=6, dash=DASH["vida"], glow=True)
+                     lw=10, dash=DASH["vida"], glow=True)
         p_fracs = [0.02, 0.10, 0.18]
         cols = [(0, 0.86, 1), (1, 0.39, 0.39), (0.39, 1, 0.39)]
         labels = ["1. Acción directa", "2. Energía mixta", "3. Intuición"]
@@ -380,7 +397,7 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
                 cps[1][0] += 45
                 cps[2][0] += 30
             pts = [_hand_to_screen(p, box) for p in bez3(*[tuple(c) for c in cps])]
-            draw_partial(ctx, pts, frac, LCOL["vida"], lw=6,
+            draw_partial(ctx, pts, frac, LCOL["vida"], lw=8,
                          dash=DASH["vida"], glow=True)
             ttl = "CURVA AMPLIA" if i == 0 else "ARCO ESTRECHO"
             _set_font(ctx, 22, True)
@@ -399,7 +416,7 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
         pts = [_hand_to_screen(p, box) for p in lines["vida"]]
         third = len(pts) // 3
         draw_partial(ctx, pts[:third], max(0.0, min(1.0, prog / 0.35)),
-                     LCOL["vida"], lw=9, glow=True)
+                     LCOL["vida"], lw=12, glow=True)
         if prog > 0.35:
             draw_partial(ctx, pts[third:2 * third],
                          min(1.0, (prog - 0.35) / 0.25),
@@ -414,53 +431,10 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
     draw_title(ctx, W, H, cfg, alpha=title_a)
     draw_footer(ctx, W, H, sid, tot)
 
-    # capa: captions de conceptos investigados (si existen)
-    if research:
-        panel_a = max(0.0, min(1.0, (prog - 0.45) / 0.25))
-        _paste_concepts(surf, ctx, W, H, research, sid, panel_a)
-
+    # Las fotos de concepto (Openverse) quedan fuera del motor editorial V8:
+    # el diseno exige imagenes solo para fondos/historia/mitologia, no
+    # pegadas sobre la mano. research se conserva como metadata.
     return surf
-
-
-def _paste_concepts(surf, ctx, W, H, research, sid, alpha):
-    items = research.get("scenes", {}).get(str(sid), [])
-    slots = [(0.70, 0.16, 0.26, 0.32), (0.70, 0.56, 0.26, 0.32)]
-    for i, key in enumerate(items[:2]):
-        info = research.get("concepts", {}).get(key)
-        if not info:
-            continue
-        fp = Path(info.get("file", ""))
-        if not fp.exists():
-            continue
-        box = (int(slots[i][0] * W), int(slots[i][1] * H),
-               int(slots[i][2] * W), int(slots[i][3] * H))
-        _paste_photo(ctx, fp, box, info.get("label", key), alpha)
-
-
-def _paste_photo(ctx, photo_path, box, caption, alpha):
-    if alpha <= 0.02:
-        return
-    x, y, w, h = box
-    im = Image.open(photo_path).convert("RGB")
-    ratio = max(w / im.width, h / im.height)
-    nw, nh = int(im.width * ratio) + 1, int(im.height * ratio) + 1
-    im = im.resize((nw, nh), Image.LANCZOS)
-    left, top = (nw - w) // 2, (nh - h) // 2
-    im = im.crop((left, top, left + w, top + h))
-    data = bytearray(im.convert("RGBA").tobytes("raw", "BGRA"))
-    psurf = cairo.ImageSurface.create_for_data(data, cairo.FORMAT_ARGB32, w, h)
-    ctx.save()
-    ctx.set_source_surface(psurf, x, y)
-    ctx.paint_with_alpha(alpha)
-    ctx.restore()
-    _set_font(ctx, 20, True)
-    ext = ctx.text_extents(caption)
-    ctx.set_source_rgba(0, 0, 0, 0.8 * alpha)
-    ctx.rectangle(x, y + h - 40, w, 40)
-    ctx.fill()
-    ctx.set_source_rgba(1, 1, 1, alpha)
-    ctx.move_to(x + (w - ext.width) / 2, y + h - 14)
-    ctx.show_text(caption)
 
 
 def _surface_to_rgb(surf, W, H):

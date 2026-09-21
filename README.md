@@ -27,9 +27,9 @@ una mano paramétrica (palma + 5 dedos cápsula + muñeca) en un viewBox de
 nunca dentro de una imagen generada.
 
 ```powershell
-# Verifica que la mano tenga exactamente 5 dedos separados
+# Verifica que la mano tenga exactamente 5 dedos (izquierda y derecha)
 python scripts\v8\hand_geometry.py --selftest
-# -> {"side": "L", "finger_runs": 5, "ok": true}
+# -> {"side": "L", "digits": 5, "ok": true, "path_points": 67}
 
 # Regenera los SVG maestros (mano izquierda + espejo derecho)
 python scripts\v8\hand_geometry.py --emit

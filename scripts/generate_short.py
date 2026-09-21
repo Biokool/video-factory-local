@@ -51,15 +51,23 @@ def main():
         print(f"ERROR: video no existe: {video_path}")
         sys.exit(1)
 
-    vf = (f"scale={width}:{height}:force_original_aspect_ratio=increase,"
-          f"crop={width}:{height},boxblur=20:1")
+    # Encuadre 9:16 sin cortar el sujeto: fondo desenfocado + video centrado.
+    W, H = width, height
+    fc = (
+        f"[0:v]split=2[bg][fg];"
+        f"[bg]scale={W}:{H}:force_original_aspect_ratio=increase,"
+        f"crop={W}:{H},boxblur=30:2,eq=brightness=-0.08[bgb];"
+        f"[fg]scale={W}:{H}:force_original_aspect_ratio=decrease[fgs];"
+        f"[bgb][fgs]overlay=(W-w)/2:(H-h)/2:shortest=1[v]"
+    )
 
     cmd = [
         "ffmpeg", "-y",
         "-ss", str(args.start),
         "-i", str(video_path),
         "-t", str(args.duration),
-        "-vf", vf,
+        "-filter_complex", fc,
+        "-map", "[v]", "-map", "0:a:0?",
         "-r", str(fps),
         "-c:v", profile.get("video_codec", "libx264"),
         "-preset", profile.get("preset", "fast"),

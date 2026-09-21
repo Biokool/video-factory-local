@@ -17,16 +17,22 @@ raster).
 ```
 extract_pdf -> topic_extract/rag_ingest -> generate_script -> build_storyboard
    -> research_images -> generate_tts -> policy_gate -> compositor(V8)
-   -> generate_subtitles -> render_video -> validate_video -> generate_short
+   -> generate_subtitles -> render_video(16:9) -> validate_video
+   -> compositor(9:16) -> render_video(short)   # short NATIVO, sin recorte
 ```
 
 Orquestado por `scripts/pipeline.py` y monitorizado por `scripts/monitor.py`.
+
+El short 9:16 se compone y renderiza nativamente (1080×1920), no se recorta
+del 16:9: así la mano nunca queda cortada a la mitad. Las fotos de concepto
+de Openverse ya **no** se pegan sobre la mano (el diseño V8 usa imágenes solo
+para fondos/historia/mitología); `research.json` se conserva como metadata.
 
 ## Motor visual V8 (`scripts/v8/`)
 
 | Módulo | Responsabilidad |
 |---|---|
-| `hand_geometry.py` | Mano paramétrica determinista (palma + 5 dedos cápsula + muñeca) en viewBox 1024². Define landmarks y anclas de líneas/montes en el mismo espacio. Emite SVG maestro y espejo derecho declarado. |
+| `hand_geometry.py` | Mano anatómica determinista (palma + 4 dedos + pulgar + muñeca) rasterizada, con el contorno exterior trazado a **un único path Bézier**. Define landmarks, `content_bbox()` y anclas de líneas/montes. Emite SVG maestro L/R. |
 | `svg_render.py` | Tokenizador mínimo SVG→Cairo (M/L/H/V/C/S/Z, `<g>`, círculos/elipses/rects). Sin `cairosvg`. Rasteriza a máscara para QA. |
 | `compositor.py` | Compositor por capas. Reemplaza a `generate_images.py`. |
 | `asset_registry.py` | Resolución segura de `asset_id` → ruta (confina a `assets/`), máquina de estados y detección de huérfanos. |
@@ -41,18 +47,32 @@ El compositor dibuja mano y overlays en el **mismo espacio de coordenadas**
 (1024²) y los mapea a la caja destino, de modo que la alineación queda
 garantizada por construcción (desaparecen los números mágicos `PALM`/`MONTES`).
 
-### Mano: por qué vectorial
+### Mano: por qué vectorial y cómo se construye (V8.1)
 
 El fallo del V6 era `HandPhoto.resized_filled()` en `generate_images.py`:
 `MaxFilter(7)+MaxFilter(5)+GaussianBlur(2)` dilataba el alfa de un dibujo de
 línea fina y lo fundía en una masa amorfa sin dedos. La solución no es otra
 foto (ningún raster del proyecto es una silueta sólida), sino **construir la
-geometría**. La mano se compone de primitivas (palma elíptica, muñeca y 5
-dedos cápsula) con contorno exterior continuo por construcción: una capa de
-contorno expandida y encima la capa de piel que cubre los trazos internos.
+geometría**.
 
-QA automática: `python scripts/v8/hand_geometry.py --selftest` exige
-exactamente **5 tramos de dedo** en la banda superior de la máscara.
+`hand_geometry.py` genera una mano anatómica determinista:
+
+1. **Primitivas** bien proporcionadas: palma trapezoidal, 4 dedos afinados
+   (ancho base → ancho punta) con punta redonda, pulgar y muñeca redondeada.
+2. **Rasteriza** la unión (supersample ×3) y **traza el contorno exterior**
+   (marching squares vía matplotlib).
+3. **Simplifica** (Douglas-Peucker cerrado) y **suaviza** (Catmull-Rom →
+   Bézier cúbicos), produciendo **un único path cerrado**: la línea exterior
+   es continua por construcción y no hay trazos internos.
+4. Emite el SVG maestro (relleno + trazo) y el espejo derecho declarado.
+
+QA automática: `python scripts/v8/hand_geometry.py --selftest` aísla los
+dedos (resta la palma) y exige **exactamente 5 componentes** con punta por
+encima de la palma. Verificado en izquierda y derecha.
+
+Encuadre: el compositor usa `content_bbox()` para escalar la mano por su
+contenido real (no por el viewBox), de modo que llena el alto del cuadro y
+queda centrada, en 16:9 y en 9:16 nativo.
 
 ## Contratos
 
