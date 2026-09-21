@@ -3,30 +3,26 @@
 ## [V8.1] — Mano de alta calidad y encuadre
 
 ### Corregido
-- **Mano deforme:** el motor V8.0 unía cápsulas de ancho constante, lo que
-  producía un blob con dedos cortos y palma desplazada. Ahora
-  `hand_geometry.py` construye primitivas anatómicas (palma trapezoidal, 4
-  dedos afinados con punta redonda, pulgar y muñeca) y **traza el contorno
-  exterior a un único path Bézier cerrado** (marching squares → Douglas-
-  Peucker → Catmull-Rom). Línea exterior continua, sin trazos internos.
-- **Mano pequeña:** el compositor escalaba por el viewBox completo, pero la
-  mano ocupa una franja. Ahora usa `content_bbox()` y la encuadra por su
-  contenido real (llena el alto, centrada).
-- **Short cortado a la mitad:** el short se recortaba del 16:9 y cortaba la
-  mano. Ahora se **compone y renderiza nativo 1080×1920**.
-- **Fotos de concepto feas sobre la mano:** se retiran del compositor
-  (el diseño V8 usa imágenes solo para fondos/historia/mitología).
-- Líneas y montes más gruesos y con brillo; etiquetas dentro del cuadro.
+- **Mano deforme (blob):** se reescribió `hand_geometry.py` completo con
+  contorno anatómico suave usando Bézier Catmull-Rom. Palma ancha (380px),
+  4 dedos claramente separados con punta redondeada, pulgar lateral, muñeca.
+- **Textos ilegibles:** títulos放大 a 60px, subtítulos a 28px, labels a
+  30px, pie de página a 22px, subtítulos SRT a 38px. Todo legible en 1080p.
+- **Mano pequeña:** compositor ahora usa `content_bbox()` que incluye dedos
+  + pulgar para encuadrar correctamente.
+- **Short cortado:** short 9:16 nativo (no recorte del 16:9).
+- **Fotos de concepto:** retiradas del compositor.
+- **Líneas delgadas:** grosor aumentado a 8-13px con glow.
 
 ### Añadido
-- QA robusta de dedos por componentes conectados (resta la palma y exige 5
-  componentes con punta por encima). Verificado en izquierda y derecha.
-- `content_bbox()` en `hand_geometry.py`.
-- **Voz humana**: VoiceStudio (OmniVoice) como motor principal, con fallback
-  a SAPI (voz Sabina es-MX). Pipeline `--engine auto|voicestudio|sapi`.
-- Monitor rediseñado: dashboard HTML externo con estilos mejorados, historial
-  de jobs, parámetros de creación, GPU bars, engine de voz seleccionable.
-- `examples/` con frames JPG + videos para validación externa.
+- **Narración pausada:** guion canned reescrito con pausas (...), frases
+  cortas y énfasis en palabras clave. Duraciones 12s por escena.
+- **Directrices de marca:** `docs/BRAND_GUIDELINES.md` completa para
+  quiromancia, astrología, tarot, numerología. Incluye reglas de color,
+  tipografía, animación, y guía para nuevas disciplinas.
+- Motor de voz VoiceStudio (OmniVoice) como principal.
+- Monitor rediseñado con historial de jobs, engine selector, GPU bars.
+- `examples/` con frames + videos para validación externa.
 
 ## [V8] — Motor visual vectorial y homologación V7
 

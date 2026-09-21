@@ -87,14 +87,26 @@ def bez3(p0, p1, p2, p3, n=48):
 
 def anchors(side="L"):
     """lineas y montes en coordenadas 1024 de la mano, con espejo."""
+    raw_lines, raw_mounts = hg.anchors()
     lines = {}
-    for name, cps in hg.palm_line_anchors().items():
-        pts = bez3(*cps)
-        if side.upper() == "R":
-            pts = [(hg.VIEWBOX - x, y) for x, y in pts]
-        lines[name] = pts
+    for name, pts in raw_lines.items():
+        # Convert list of points to smooth path using simple interpolation
+        if len(pts) >= 2:
+            smooth = []
+            for i in range(len(pts) - 1):
+                p0 = pts[i]
+                p1 = pts[i + 1]
+                for t_i in range(12):
+                    t = t_i / 12
+                    x = p0[0] + (p1[0] - p0[0]) * t
+                    y = p0[1] + (p1[1] - p0[1]) * t
+                    smooth.append((x, y))
+            smooth.append(pts[-1])
+            if side.upper() == "R":
+                smooth = [(hg.VIEWBOX - x, y) for x, y in smooth]
+            lines[name] = smooth
     mounts = {}
-    for name, (mx, my, mr) in hg.palm_mounts().items():
+    for name, (mx, my, mr) in raw_mounts.items():
         if side.upper() == "R":
             mx = hg.VIEWBOX - mx
         mounts[name] = (mx, my, mr)
@@ -194,7 +206,7 @@ def draw_pulsing_point(ctx, x, y, color, phase, base_r=12):
     ctx.stroke()
 
 
-def _label(ctx, lx, ly, tx, ty, text, fs=16, col=(1, 1, 1), alpha=1.0):
+def _label(ctx, lx, ly, tx, ty, text, fs=28, col=(1, 1, 1), alpha=1.0):
     if alpha <= 0.02:
         return
     _set_font(ctx, fs, True)
@@ -227,38 +239,39 @@ def _label(ctx, lx, ly, tx, ty, text, fs=16, col=(1, 1, 1), alpha=1.0):
 
 
 def draw_title(ctx, w, h, cfg, alpha=1.0):
-    _set_font(ctx, max(34, w // 30), True)
+    fs = max(60, w // 18)
+    _set_font(ctx, fs, True)
     ext = ctx.text_extents(cfg["title"])
     ctx.set_source_rgba(1, 1, 1, alpha)
-    ctx.move_to((w - ext.width) / 2, 52)
+    ctx.move_to((w - ext.width) / 2, 75)
     ctx.show_text(cfg["title"])
-    _set_font(ctx, max(18, w // 55))
+    _set_font(ctx, max(28, w // 38))
     ext = ctx.text_extents(cfg["subtitle"])
     ctx.set_source_rgba(0.71, 0.63, 0.86, alpha)
-    ctx.move_to((w - ext.width) / 2, 80)
+    ctx.move_to((w - ext.width) / 2, 115)
     ctx.show_text(cfg["subtitle"])
     ctx.set_source_rgba(1, 1, 1, 0.25 * alpha)
     ctx.set_line_width(2)
-    uw = min(600, w // 3)
-    ctx.move_to(w / 2 - uw / 2, 92)
-    ctx.line_to(w / 2 + uw / 2, 92)
+    uw = min(700, w // 3)
+    ctx.move_to(w / 2 - uw / 2, 130)
+    ctx.line_to(w / 2 + uw / 2, 130)
     ctx.stroke()
 
 
 def draw_footer(ctx, w, h, sid, tot):
     ctx.set_source_rgba(0, 0, 0, 0.55)
-    ctx.rectangle(0, h - 46, w, 46)
+    ctx.rectangle(0, h - 56, w, 56)
     ctx.fill()
-    _set_font(ctx, max(13, w // 70))
-    txt = "QUIROMANCIA TERAPÉUTICA - CONTENIDO EDUCATIVO"
+    _set_font(ctx, max(22, w // 45))
+    txt = "QUIROMANCIA TERAPÉUTICA · CONTENIDO EDUCATIVO"
     ext = ctx.text_extents(txt)
     ctx.set_source_rgb(0.47, 0.43, 0.59)
-    ctx.move_to((w - ext.width) / 2, h - 20)
+    ctx.move_to((w - ext.width) / 2, h - 22)
     ctx.show_text(txt)
     num = f"{sid}/{tot}"
     ext = ctx.text_extents(num)
     ctx.set_source_rgb(0.39, 0.35, 0.51)
-    ctx.move_to(w - ext.width - 20, h - 20)
+    ctx.move_to(w - ext.width - 24, h - 22)
     ctx.show_text(num)
 
 
@@ -348,26 +361,26 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
                 ctx.stroke()
         la = max(0.0, min(1.0, (prog - 0.68) / 0.2))
         if la > 0:
-            lx = max(24.0, box[0] - 330.0)
-            rx = min(W - 300.0, box[0] + box[2] + 24.0)
+            lx = max(24.0, box[0] - 400.0)
+            rx = min(W - 350.0, box[0] + box[2] + 24.0)
             _label(ctx, rx, box[1] + 40,
                    *_hand_to_screen(mounts["venus"][:2], box),
-                   "Monte de Venus", 18, alpha=la)
-            _label(ctx, lx, box[1] + 90,
+                   "Monte de Venus", 30, alpha=la)
+            _label(ctx, lx, box[1] + 100,
                    *_hand_to_screen(lines["vida"][len(lines["vida"]) // 2], box),
-                   "Línea de la Vida", 18, col=LCOL["vida"], alpha=la)
-            _label(ctx, lx, box[1] + 170,
+                   "Línea de la Vida", 30, col=LCOL["vida"], alpha=la)
+            _label(ctx, lx, box[1] + 190,
                    *_hand_to_screen(lines["corazon"][len(lines["corazon"]) // 2], box),
-                   "Línea del Corazón", 18, col=LCOL["corazon"], alpha=la)
-            _label(ctx, lx, box[1] + 250,
+                   "Línea del Corazón", 30, col=LCOL["corazon"], alpha=la)
+            _label(ctx, lx, box[1] + 280,
                    *_hand_to_screen(lines["cabeza"][len(lines["cabeza"]) // 2], box),
-                   "Línea de la Cabeza", 18, col=LCOL["cabeza"], alpha=la)
-            _label(ctx, rx, box[1] + 120,
+                   "Línea de la Cabeza", 30, col=LCOL["cabeza"], alpha=la)
+            _label(ctx, rx, box[1] + 130,
                    *_hand_to_screen(mounts["jupiter"][:2], box),
-                   "Monte de Júpiter", 18, alpha=la)
-            _label(ctx, rx, box[1] + 200,
+                   "Monte de Júpiter", 30, alpha=la)
+            _label(ctx, rx, box[1] + 220,
                    *_hand_to_screen(mounts["saturno"][:2], box),
-                   "Monte de Saturno", 18, alpha=la)
+                   "Monte de Saturno", 30, alpha=la)
 
     elif sid == 2:
         box = boxes[0]
@@ -383,29 +396,36 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
                 continue
             px, py = pts[int(len(pts) * pf)]
             draw_pulsing_point(ctx, px, py, c, phase=(prog * 3) % 1.0)
-            _label(ctx, box[0] + box[2] + 40, box[1] + 20 + i * 46,
-                   px + 18, py, lb, 15, alpha=a)
+            _label(ctx, box[0] + box[2] + 40, box[1] + 20 + i * 55,
+                   px + 18, py, lb, 26, alpha=a)
 
     elif sid == 3:
         for i, box in enumerate(boxes):
             frac = max(0.0, min(1.0, (prog - 0.10) / 0.45))
-            cps = [list(p) for p in hg.palm_line_anchors()["vida"]]
+            base_pts = [list(p) for p in hg.anchors()[0]["vida"]]
+            # Offset the line to create two different curves
             if i == 0:
-                cps[1][0] -= 45
-                cps[2][0] -= 40
+                for j in range(len(base_pts)):
+                    if 1 <= j <= 2:
+                        base_pts[j][0] -= 45
+                    elif 3 <= j <= 4:
+                        base_pts[j][0] -= 40
             else:
-                cps[1][0] += 45
-                cps[2][0] += 30
-            pts = [_hand_to_screen(p, box) for p in bez3(*[tuple(c) for c in cps])]
-            draw_partial(ctx, pts, frac, LCOL["vida"], lw=8,
+                for j in range(len(base_pts)):
+                    if 1 <= j <= 2:
+                        base_pts[j][0] += 45
+                    elif 3 <= j <= 4:
+                        base_pts[j][0] += 30
+            pts = [_hand_to_screen(p, box) for p in base_pts]
+            draw_partial(ctx, pts, frac, LCOL["vida"], lw=10,
                          dash=DASH["vida"], glow=True)
             ttl = "CURVA AMPLIA" if i == 0 else "ARCO ESTRECHO"
-            _set_font(ctx, 22, True)
+            _set_font(ctx, 34, True)
             ext = ctx.text_extents(ttl)
             ctx.set_source_rgba(1, 1, 1, title_a)
             ctx.move_to(box[0] + box[2] / 2 - ext.width / 2, box[1] - 18)
             ctx.show_text(ttl)
-        _set_font(ctx, 22, True)
+        _set_font(ctx, 34, True)
         ext = ctx.text_extents("vs")
         ctx.set_source_rgb(0.47, 0.47, 0.63)
         ctx.move_to(W / 2 - ext.width / 2, int(H * 0.55))
@@ -424,9 +444,9 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
         la = max(0.0, min(1.0, (prog - 0.5) / 0.25))
         if la > 0:
             _label(ctx, box[0] + box[2] + 40, box[1] + 40,
-                   *pts[third // 2], "PROFUNDA", 15, (1, 0.39, 0.51), alpha=la)
-            _label(ctx, box[0] + box[2] + 40, box[1] + 110,
-                   *pts[third + third // 2], "MEDIA", 15, (0.78, 0.71, 0.63), alpha=la)
+                   *pts[third // 2], "PROFUNDA", 28, (1, 0.39, 0.51), alpha=la)
+            _label(ctx, box[0] + box[2] + 40, box[1] + 120,
+                   *pts[third + third // 2], "MEDIA", 28, (0.78, 0.71, 0.63), alpha=la)
 
     draw_title(ctx, W, H, cfg, alpha=title_a)
     draw_footer(ctx, W, H, sid, tot)

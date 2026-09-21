@@ -28,19 +28,18 @@ sys.path.insert(0, str(SCRIPT_DIR))
 
 NARRATION_TEMPLATES = {
     "hook": (
-        "La Línea de la Vida es la línea más popular de la palma y la que "
-        "mayor impacto causa al ser interpretada. Hoy la exploramos con "
-        "enfoque terapéutico y sin predicciones de destino."
+        "La Línea de la Vida... es la línea más conocida de la palma. "
+        "Hoy la exploramos con enfoque terapéutico. Sin predicciones de destino."
     ),
     "scenes": [
         {
             "id": 1,
-            "duration_sec": 10,
+            "duration_sec": 12,
             "base_narration": (
-                "La línea de la Vida se origina en el borde entre el pulgar "
-                "y el índice, y desciende en arco hacia la muñeca. Es la línea "
-                "que más curiosidad genera, pero también la que más malentendidos "
-                "provoca cuando se interpreta sin contexto."
+                "La línea de la Vida se origina aquí. Entre el pulgar y el índice. "
+                "Desciende en arco suave... hacia la muñeca. "
+                "Es la línea que más curiosidad genera. Pero también la que más "
+                "malentendidos provoca... cuando se interpreta sin contexto."
             ),
             "on_screen_text": "La Línea de la Vida",
             "visual_type": "life_intro",
@@ -48,11 +47,12 @@ NARRATION_TEMPLATES = {
         },
         {
             "id": 2,
-            "duration_sec": 10,
+            "duration_sec": 12,
             "base_narration": (
-                "Esta línea tiene tres puntos de partida posibles. Cada uno "
-                "refleja una manera diferente en que la persona gestiona su "
-                "energía vital: desde la acción directa hasta la intuición."
+                "Esta línea tiene tres puntos de partida posibles. "
+                "Cada uno refleja una manera diferente... en que la persona "
+                "gestiona su energía vital. Desde la acción directa... "
+                "hasta la intuición."
             ),
             "on_screen_text": "Tres puntos de partida",
             "visual_type": "life_start",
@@ -60,11 +60,11 @@ NARRATION_TEMPLATES = {
         },
         {
             "id": 3,
-            "duration_sec": 10,
+            "duration_sec": 12,
             "base_narration": (
-                "La forma en que nace la línea de la Vida habla de nuestra "
-                "naturaleza profunda. Una curva amplia sugiere apertura; "
-                "un arco estrecho, una energía más concentrada y dirigida."
+                "La forma en que nace la línea... habla de nuestra naturaleza profunda. "
+                "Una curva amplia sugiere apertura. "
+                "Un arco estrecho... una energía más concentrada. Y dirigida."
             ),
             "on_screen_text": "Forma del nacimiento",
             "visual_type": "life_form",
@@ -72,19 +72,19 @@ NARRATION_TEMPLATES = {
         },
         {
             "id": 4,
-            "duration_sec": 10,
+            "duration_sec": 12,
             "base_narration": (
-                "La profundidad de la línea refleja nuestra vitalidad. "
-                "Una línea nítida y profunda indica energía constante; "
-                "una más suave puede señalar momentos de mayor sensibilidad "
-                "y necesidad de autocuidado."
+                "La profundidad de la línea... refleja nuestra vitalidad. "
+                "Una línea nítida y profunda... indica energía constante. "
+                "Una más suave... puede señalar momentos de mayor sensibilidad. "
+                "Y necesidad de autocuidado."
             ),
             "on_screen_text": "Profundidad y vitalidad",
             "visual_type": "life_depth",
             "key_concepts": ["profundidad", "vitalidad", "sensibilidad"],
         },
     ],
-    "cta": "Si te interesa la quiromancia terapéutica, guarda este video y sigue explorando.",
+    "cta": "Si te interesa la quiromancia terapéutica... guarda este video. Y sigue explorando.",
 }
 
 CANNED_SCRIPT = {

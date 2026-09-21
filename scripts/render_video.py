@@ -275,7 +275,7 @@ def concatenate_scenes(scene_videos, profile, output_path, burn_subtitles=False,
     if burn_subtitles and subtitle_path and subtitle_path.exists():
         # Ruta con ':' escapado y barras normales para el filtergraph.
         sub = subtitle_path.resolve().as_posix().replace(":", "\\:")
-        style = ("FontName=Arial,FontSize=22,PrimaryColour=&HFFFFFF,"
+        style = ("FontName=Arial,FontSize=38,PrimaryColour=&HFFFFFF,"
                  "OutlineColour=&H000000,Outline=2")
         vf = f"subtitles='{sub}':si=0:force_style='{style}'"
         cmd += ["-vf", vf]

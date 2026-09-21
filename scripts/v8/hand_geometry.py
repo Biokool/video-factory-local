@@ -1,344 +1,505 @@
-"""hand_geometry.py - Mano vectorial determinista de alta calidad (V8.1).
-
-Construye la silueta de la mano a partir de primitivas anatomicas bien
-proporcionadas (palma trapezoidal, 4 dedos afinados con punta redonda,
-pulgar y muñeca) y extrae el contorno exterior como UN unico path de
-Bezier cubicos, de modo que la linea exterior es continua por construccion.
-
-Pipeline interno:
-  1. rasteriza la union de primitivas (supersampleado)
-  2. traza el contorno exterior (marching squares via matplotlib)
-  3. simplifica (Douglas-Peucker cerrado) y suaviza (Catmull-Rom -> Bezier)
-  4. emite el SVG maestro (path unico, relleno + trazo)
-
-Mano izquierda palmar (dedos arriba, pulgar a la DERECHA). La derecha es
-un espejo declarado (x' = W - x).
-
-Reglas (docs/v7/03-IMAGENES-Y-ORTOGRAFIA.md): exactamente cinco dedos
-claramente diferenciables, puntas completas, muñeca completa, sin texto ni
-lineas de quiromancia dentro del raster, lateralidad declarada.
-
-Uso:
-  python hand_geometry.py --emit
-  python hand_geometry.py --selftest
-  python hand_geometry.py --landmarks
 """
-from __future__ import annotations
+Hand geometry v9 – anatomical outline as a single smooth Bézier path.
 
-import argparse
-import json
-import math
-import sys
+The hand is drawn in a LEFT palmar view inside a 1024×1024 viewBox.
+The outline traces continuously: wrist → palm → index → middle → ring →
+pinky → palm → thumb → wrist. Fingers are clearly separated with
+rounded tips.  No raster tracing – the path is defined mathematically
+for crisp, smooth curves at any resolution.
+
+Output: SVG master + JSON landmarks + selftest.
+"""
+import argparse, json, math, sys
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
-import svg_render  # noqa: E402
+OUT_DIR = Path(__file__).resolve().parent.parent.parent / "assets" / "v8" / "hands"
+SVG_OUT = OUT_DIR / "mano_izquierda_v9.svg"
+JSON_OUT = OUT_DIR / "hand_landmarks_v9.json"
 
-SCRIPT_DIR = Path(__file__).resolve().parents[2]
-HANDS_DIR = SCRIPT_DIR / "assets" / "v7" / "hands"
+# ── ViewBox & palm geometry ─────────────────────────────────────────
+VIEWBOX = 1024  # alias for compositor compatibility
+VB = VIEWBOX
+# Palm: wide, centred
+PALM_CX, PALM_CY = 512, 590
+PALM_W, PALM_H = 380, 300  # wide and not too tall
 
-VIEWBOX = 1024
-SKIN = "#F0C3AC"
-SKIN_LINE = "#B9795F"
-STROKE_W = 8.0
-SUPERSAMPLE = 3
+# Finger base positions (x offsets from palm centre, y = top of palm)
+# These are the gaps between fingers at the palm top edge
+FINGER_BASE_Y = PALM_CY - PALM_H // 2  # 440
 
-# ── Primitivas anatomicas (espacio 1024x1024) ───────────────────────────
-PALM = [(340, 505), (660, 505), (688, 590), (700, 700), (674, 795), (634, 838),
-        (366, 838), (326, 795), (300, 700), (312, 590)]
-WRIST = {"x0": 405, "y0": 810, "x1": 600, "y1": 1000, "r": 45}
+# Finger dimensions: (length, base_width, tip_width, x_offset_from_centre)
+# Index is leftmost, pinky rightmost (palmar view, left hand)
 FINGERS = {
-    "index":  {"base": (398, 520), "tip": (372, 165), "wb": 78, "wt": 60},
-    "middle": {"base": (492, 508), "tip": (494, 78),  "wb": 82, "wt": 62},
-    "ring":   {"base": (584, 520), "tip": (612, 138), "wb": 76, "wt": 58},
-    "pinky":  {"base": (670, 565), "tip": (712, 292), "wb": 62, "wt": 46},
+    "indice":    {"x_off": -105, "len": 250, "base_w": 54, "tip_w": 36},
+    "medio":     {"x_off":  -30, "len": 280, "base_w": 54, "tip_w": 36},
+    "anular":    {"x_off":   45, "len": 245, "base_w": 50, "tip_w": 34},
+    "menique":   {"x_off":  115, "len": 195, "base_w": 44, "tip_w": 30},
 }
-THUMB = {"base": (700, 745), "tip": (915, 500), "wb": 96, "wt": 66}
-PALM_CENTER = (500.0, 665.0)
-PALM_RADII = (200.0, 180.0)
+# Thumb: originates from lower-left of palm, angles outward
+THUMB = {"x_off": -175, "y_off": 110, "len": 210, "base_w": 56, "tip_w": 38,
+         "angle_deg": -35}  # angle from vertical (negative = leftward)
 
-_PATH_CACHE = {}
+# Wrist
+WRIST_W = 160
+WRIST_BOTTOM = PALM_CY + PALM_H // 2 + 80  # 800
 
 
-def _tapered_poly(base, tip, wb, wt, n=26):
-    bx, by = base
-    tx, ty = tip
-    dx, dy = tx - bx, ty - by
-    L = math.hypot(dx, dy) or 1.0
-    ux, uy = dx / L, dy / L
-    px, py = -uy, ux
+# ── Bezier helpers ──────────────────────────────────────────────────
+
+def catmull_rom_to_bezier(p0, p1, p2, p3, tension=0.4):
+    """Convert 4 Catmull-Rom points to a cubic Bézier segment."""
+    d1 = (p2[0] - p0[0], p2[1] - p0[1])
+    d2 = (p3[0] - p1[0], p3[1] - p1[1])
+    cp1 = (p1[0] + d1[0] * tension, p1[1] + d1[1] * tension)
+    cp2 = (p2[0] - d2[0] * tension, p2[1] - d2[1] * tension)
+    return cp1, cp2
+
+
+def smooth_path(keypoints, closed=True):
+    """Return SVG path d-attribute using Catmull-Rom → cubic Bézier."""
+    n = len(keypoints)
+    pts = list(keypoints)
+    if closed:
+        pts = [pts[-1]] + pts + [pts[0], pts[1]]
+    else:
+        pts = [pts[0]] + pts + [pts[-1]]
+
+    segments = []
+    for i in range(1, len(pts) - 2):
+        cp1, cp2 = catmull_rom_to_bezier(pts[i - 1], pts[i], pts[i + 1], pts[i + 2])
+        if i == 1 and not closed:
+            segments.append(f"M{pts[i][0]:.1f},{pts[i][1]:.1f}")
+            segments.append(f"C{cp1[0]:.1f},{cp1[1]:.1f} {cp2[0]:.1f},{cp2[1]:.1f} {pts[i+1][0]:.1f},{pts[i+1][1]:.1f}")
+        elif i == 1:
+            segments.append(f"M{pts[i][0]:.1f},{pts[i][1]:.1f}")
+            segments.append(f"C{cp1[0]:.1f},{cp1[1]:.1f} {cp2[0]:.1f},{cp2[1]:.1f} {pts[i+1][0]:.1f},{pts[i+1][1]:.1f}")
+        else:
+            segments.append(f"C{cp1[0]:.1f},{cp1[1]:.1f} {cp2[0]:.1f},{cp2[1]:.1f} {pts[i+1][0]:.1f},{pts[i+1][1]:.1f}")
+
+    if closed:
+        segments.append("Z")
+    return "".join(segments)
+
+
+# ── Hand outline keypoints ──────────────────────────────────────────
+
+def _finger_tip_cx(finfo):
+    """x of finger tip centre."""
+    return PALM_CX + finfo["x_off"]
+
+def _finger_tip_cy(finfo):
+    """y of finger tip."""
+    return FINGER_BASE_Y - finfo["len"]
+
+def _finger_left(finfo, y=None):
+    """x of left edge of finger at given y (default: base)."""
+    if y is None:
+        y = FINGER_BASE_Y
+    # Linear taper from base_w/2 at base to tip_w/2 at tip
+    t = (FINGER_BASE_Y - y) / finfo["len"] if finfo["len"] else 0
+    half_w = (finfo["base_w"] / 2) * (1 - t) + (finfo["tip_w"] / 2) * t
+    return PALM_CX + finfo["x_off"] - half_w
+
+def _finger_right(finfo, y=None):
+    if y is None:
+        y = FINGER_BASE_Y
+    t = (FINGER_BASE_Y - y) / finfo["len"] if finfo["len"] else 0
+    half_w = (finfo["base_w"] / 2) * (1 - t) + (finfo["tip_w"] / 2) * t
+    return PALM_CX + finfo["x_off"] + half_w
+
+def _finger_tip_left(finfo):
+    return _finger_left(finfo, _finger_tip_cy(finfo))
+
+def _finger_tip_right(finfo):
+    return _finger_right(finfo, _finger_tip_cy(finfo))
+
+
+def build_hand_outline():
+    """
+    Build the complete hand outline as a list of keypoints.
+    Traces: wrist_L → palm_L → between fingers → finger tips → wrist_R → thumb → wrist_L
+    """
     pts = []
-    for i in range(n + 1):
-        t = i / n
-        w = wb + (wt - wb) * t
-        pts.append((bx + dx * t + px * w / 2, by + dy * t + py * w / 2))
-    for i in range(1, n):
-        a = math.pi * i / n
-        r = wt / 2
-        pts.append((tx + px * math.cos(a) * r + ux * math.sin(a) * r,
-                    ty + py * math.cos(a) * r + uy * math.sin(a) * r))
-    for i in range(n + 1):
-        t = 1 - i / n
-        w = wb + (wt - wb) * t
-        pts.append((bx + dx * t - px * w / 2, by + dy * t - py * w / 2))
+
+    # ── Left wrist / lower palm ────────────────────────────────────
+    wrist_lx = PALM_CX - WRIST_W // 2   # 432
+    wrist_rx = PALM_CX + WRIST_W // 2   # 592
+    palm_lx = PALM_CX - PALM_W // 2     # 322
+    palm_rx = PALM_CX + PALM_W // 2     # 702
+    palm_top = FINGER_BASE_Y             # 440
+    palm_bot = PALM_CY + PALM_H // 2    # 740
+
+    # Start at left wrist, going up
+    pts.append((wrist_lx, WRIST_BOTTOM))      # 0: wrist left bottom
+    pts.append((wrist_lx, palm_bot - 20))      # 1: wrist left mid
+    pts.append((palm_lx + 10, palm_bot))       # 2: palm left lower
+    pts.append((palm_lx, palm_bot - 60))       # 3: palm left mid
+    pts.append((palm_lx - 5, PALM_CY))         # 4: palm left widest
+    pts.append((palm_lx + 5, palm_top + 40))   # 5: palm left upper
+    pts.append((palm_lx + 20, palm_top + 10))  # 6: palm left near top
+
+    # ── Fingers: index → middle → ring → pinky ─────────────────────
+    finger_order = ["indice", "medio", "anular", "menique"]
+    for i, fname in enumerate(finger_order):
+        fi = FINGERS[fname]
+        tip_cy = _finger_tip_cy(fi)
+        tip_cx = _finger_tip_cx(fi)
+        tl = _finger_tip_left(fi)
+        tr = _finger_tip_right(fi)
+        bl = _finger_left(fi, palm_top)
+        br = _finger_right(fi, palm_top)
+
+        # Gap between previous finger's right edge and this finger's left edge
+        # At the palm top, fingers are separated by small gaps
+        gap = 6  # pixels between fingers at base
+
+        if i == 0:
+            # Index: left side connects from palm top
+            pts.append((bl - gap, palm_top))      # 7: between palm and index left
+
+        # Left side of finger (going up)
+        pts.append((bl, palm_top + 5))             # finger base left
+        pts.append((bl + 3, palm_top - 10))        # slight inward curve
+        pts.append((tl + 2, tip_cy + 60))          # mid finger left
+        pts.append((tl + 1, tip_cy + 30))          # upper finger left
+
+        # Tip (rounded) - 3 points for smooth curve
+        pts.append((tl + 3, tip_cy + 8))           # tip left approach
+        pts.append((tip_cx, tip_cy - 4))           # tip centre (highest point)
+        pts.append((tr - 3, tip_cy + 8))           # tip right approach
+
+        # Right side of finger (going down)
+        pts.append((tr - 1, tip_cy + 30))          # upper finger right
+        pts.append((tr - 3, tip_cy + 60))          # mid finger right
+        pts.append((br - 3, palm_top - 10))        # slight inward
+        pts.append((br, palm_top + 5))             # finger base right
+
+        # Gap to next finger (or to palm edge for pinky)
+        if i < len(finger_order) - 1:
+            nxt = FINGERS[finger_order[i + 1]]
+            nxt_bl = _finger_left(nxt, palm_top)
+            pts.append((br + gap, palm_top))        # gap right side
+            pts.append((nxt_bl - gap, palm_top))    # next finger gap left
+        else:
+            # After pinky: connect to right palm edge
+            pts.append((br + gap, palm_top))
+            pts.append((palm_rx - 20, palm_top + 10))
+
+    # ── Right palm edge (going down) ───────────────────────────────
+    pts.append((palm_rx - 5, palm_top + 40))
+    pts.append((palm_rx, PALM_CY + 20))
+    pts.append((palm_rx - 5, palm_bot - 30))
+    pts.append((palm_rx - 15, palm_bot + 10))
+
+    # ── Thumb (from lower-right of palm, angling down-right) ───────
+    # Thumb is separate from the four fingers, originating lower
+    th_cx = PALM_CX + THUMB["x_off"]   # 337
+    th_cy = PALM_CY + THUMB["y_off"]   # 700
+    th_len = THUMB["len"]
+    th_angle = math.radians(THUMB["angle_deg"])
+    th_basew = THUMB["base_w"] / 2
+    th_tipw = THUMB["tip_w"] / 2
+
+    # Thumb tip position
+    th_tip_x = th_cx + th_len * math.sin(th_angle)
+    th_tip_y = th_cy - th_len * math.cos(th_angle)
+
+    # Thumb base is at the lower-left of the palm
+    # Left side of thumb (going from palm toward tip)
+    pts.append((palm_lx + 30, palm_bot - 10))   # connect from palm
+    pts.append((th_cx + th_basew + 5, th_cy - 30))  # thumb base right
+    pts.append((th_cx + th_basew, th_cy))       # thumb mid right
+    pts.append((th_cx + th_tipw + 10, th_tip_y + 40)) # thumb upper right
+
+    # Thumb tip (rounded)
+    pts.append((th_cx + th_tipw + 3, th_tip_y + 10))
+    pts.append((th_tip_x, th_tip_y - 5))        # tip
+    pts.append((th_cx - th_tipw - 3, th_tip_y + 10))
+
+    # Left side of thumb (going back toward wrist)
+    pts.append((th_cx - th_tipw - 10, th_tip_y + 40))
+    pts.append((th_cx - th_basew, th_cy))
+    pts.append((th_cx - th_basew - 5, th_cy - 40))
+    pts.append((palm_lx + 20, palm_bot + 5))    # connect back to palm/wrist
+
+    # ── Close to wrist left ────────────────────────────────────────
+    pts.append((wrist_lx + 10, palm_bot))
+
     return pts
 
 
-def _rounded_rect(x0, y0, x1, y1, r, n=10):
-    pts = [(x0 + r, y0), (x1 - r, y0)]
-    for cx, cy, a0, a1 in [(x1 - r, y0 + r, -math.pi / 2, 0),
-                           (x1 - r, y1 - r, 0, math.pi / 2),
-                           (x0 + r, y1 - r, math.pi / 2, math.pi),
-                           (x0 + r, y0 + r, math.pi, 3 * math.pi / 2)]:
-        for i in range(n + 1):
-            a = a0 + (a1 - a0) * i / n
-            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
-    return pts
+def build_hand_svg(side="L", outline_d="", landmarks=None):
+    """Build the SVG string."""
+    skin = "#F5CBA7"
+    skin_stroke = "#D4A574"
+    wrist_fill = "#E8B88A"
+
+    # Mounts: colored circles on the palm (positioned relative to palm)
+    mounts = [
+        ("Jupiter",  PALM_CX - 65,  PALM_CY - 100, "#FF6B6B", 22),
+        ("Saturn",   PALM_CX + 5,   PALM_CY - 115, "#FFD93D", 22),
+        ("Sun",      PALM_CX + 75,  PALM_CY - 100, "#6BCB77", 20),
+        ("Mercury",  PALM_CX + 135, PALM_CY - 55,  "#4D96FF", 18),
+        ("Venus",    PALM_CX - 100, PALM_CY + 80,  "#FFFFFF", 35),
+    ]
+
+    # Lines: thick colored dashed paths
+    lines_svg = ""
+    # Life line: curves from between thumb-index down around Venus mount
+    life_pts = [
+        (PALM_CX - 120, PALM_CY - 120),
+        (PALM_CX - 140, PALM_CY - 40),
+        (PALM_CX - 130, PALM_CY + 40),
+        (PALM_CX - 90, PALM_CY + 110),
+        (PALM_CX - 40, PALM_CY + 140),
+    ]
+    lines_svg += f'<path d="{_line_d(life_pts)}" stroke="#00D4FF" stroke-width="8" fill="none" stroke-dasharray="16,8" opacity="0.9"/>\n'
+
+    # Heart line: across upper palm
+    heart_pts = [
+        (PALM_CX - 160, PALM_CY - 80),
+        (PALM_CX - 80, PALM_CY - 95),
+        (PALM_CX + 0, PALM_CY - 100),
+        (PALM_CX + 80, PALM_CY - 90),
+        (PALM_CX + 140, PALM_CY - 70),
+    ]
+    lines_svg += f'<path d="{_line_d(heart_pts)}" stroke="#FF6B9D" stroke-width="8" fill="none" stroke-dasharray="16,8" opacity="0.9"/>\n'
+
+    # Head line: across mid palm
+    head_pts = [
+        (PALM_CX - 150, PALM_CY - 30),
+        (PALM_CX - 60, PALM_CY - 20),
+        (PALM_CX + 30, PALM_CY - 10),
+        (PALM_CX + 110, PALM_CY + 10),
+        (PALM_CX + 170, PALM_CY + 30),
+    ]
+    lines_svg += f'<path d="{_line_d(head_pts)}" stroke="#FFA500" stroke-width="8" fill="none" stroke-dasharray="16,8" opacity="0.9"/>\n'
+
+    # Destiny line: vertical through centre
+    destiny_pts = [
+        (PALM_CX + 5, PALM_CY - 120),
+        (PALM_CX + 0, PALM_CY - 50),
+        (PALM_CX - 5, PALM_CY + 20),
+        (PALM_CX + 0, PALM_CY + 80),
+    ]
+    lines_svg += f'<path d="{_line_d(destiny_pts)}" stroke="#FFD93D" stroke-width="7" fill="none" stroke-dasharray="14,8" opacity="0.85"/>\n'
+
+    mounts_svg = ""
+    for name, mx, my, color, r in mounts:
+        mounts_svg += f'<circle cx="{mx}" cy="{my}" r="{r}" fill="{color}" opacity="0.9"/>\n'
+
+    svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {VB} {VB}" width="{VB}" height="{VB}">
+  <defs>
+    <radialGradient id="palmGrad" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#FADEC9"/>
+      <stop offset="100%" stop-color="#E8B88A"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Hand outline -->
+  <path d="{outline_d}" fill="url(#palmGrad)" stroke="{skin_stroke}" stroke-width="4"
+        stroke-linejoin="round" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- Lines on palm -->
+  {lines_svg}
+
+  <!-- Mounts -->
+  {mounts_svg}
+
+  <!-- Landmarks (small dots for QA) -->
+  {"".join(f'<circle cx="{l[0]}" cy="{l[1]}" r="4" fill="#fff" opacity="0.6"/>' for l in (landmarks or []))}
+</svg>'''
+    return svg
 
 
-def build_mask(size=VIEWBOX, ss=SUPERSAMPLE):
-    """Rasteriza la union de primitivas y devuelve una mascara booleana."""
-    from PIL import Image, ImageDraw
-    import numpy as np
-    W = size * ss
-    img = Image.new("L", (W, W), 0)
-    d = ImageDraw.Draw(img)
-    sc = lambda pts: [(x * ss, y * ss) for x, y in pts]
-    d.polygon(sc(PALM), fill=255)
-    d.polygon(sc(_rounded_rect(WRIST["x0"], WRIST["y0"], WRIST["x1"],
-                               WRIST["y1"], WRIST["r"])), fill=255)
-    for f in FINGERS.values():
-        d.polygon(sc(_tapered_poly(f["base"], f["tip"], f["wb"], f["wt"])), fill=255)
-    d.polygon(sc(_tapered_poly(THUMB["base"], THUMB["tip"], THUMB["wb"],
-                               THUMB["wt"])), fill=255)
-    img = img.resize((size, size), Image.LANCZOS)
-    return np.array(img) > 127
-
-
-# ── Trazado del contorno a un unico path Bezier ─────────────────────────
-def _trace_contour(mask):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    cs = ax.contour(mask.astype(float), levels=[0.5])
-    segs = cs.allsegs[0]
-    plt.close(fig)
-    seg = max(segs, key=len)
-    return [(float(x), float(y)) for x, y in seg]
-
-
-def _rdp(points, eps):
-    pts = points
-    n = len(pts)
-    if n < 3:
-        return pts
-    keep = [False] * n
-    keep[0] = keep[-1] = True
-    stack = [(0, n - 1)]
-    while stack:
-        i, j = stack.pop()
-        if j <= i + 1:
-            continue
-        x1, y1 = pts[i]
-        x2, y2 = pts[j]
-        dx, dy = x2 - x1, y2 - y1
-        L = math.hypot(dx, dy) or 1e-9
-        dmax, idx = 0.0, -1
-        for k in range(i + 1, j):
-            x0, y0 = pts[k]
-            d = abs(dy * x0 - dx * y0 + x2 * y1 - y2 * x1) / L
-            if d > dmax:
-                dmax, idx = d, k
-        if dmax > eps:
-            keep[idx] = True
-            stack.append((i, idx))
-            stack.append((idx, j))
-    return [pts[i] for i in range(n) if keep[i]]
-
-
-def _rdp_closed(points, eps):
-    pts = points
-    n = len(pts)
-    if n < 4:
-        return pts
-    x0, y0 = pts[0]
-    far = max(range(n), key=lambda i: (pts[i][0] - x0) ** 2 + (pts[i][1] - y0) ** 2)
-    a = _rdp(pts[0:far + 1], eps)
-    b = _rdp(pts[far:] + [pts[0]], eps)
-    return a[:-1] + b[:-1]
-
-
-def _catmull_closed(pts):
-    n = len(pts)
-    out = []
-    for i in range(n):
-        p0 = pts[(i - 1) % n]
-        p1 = pts[i]
-        p2 = pts[(i + 1) % n]
-        p3 = pts[(i + 2) % n]
-        c1 = (p1[0] + (p2[0] - p0[0]) / 6.0, p1[1] + (p2[1] - p0[1]) / 6.0)
-        c2 = (p2[0] - (p3[0] - p1[0]) / 6.0, p2[1] - (p3[1] - p1[1]) / 6.0)
-        out.append((p1, c1, c2, p2))
-    return out
-
-
-def _segments_to_d(segs):
-    p0 = segs[0][0]
-    s = f"M{p0[0]:.1f} {p0[1]:.1f}"
-    for _, c1, c2, p in segs:
-        s += (f"C{c1[0]:.1f} {c1[1]:.1f} {c2[0]:.1f} {c2[1]:.1f} "
-              f"{p[0]:.1f} {p[1]:.1f}")
-    return s + "Z"
-
-
-def hand_path_d(eps=2.2):
-    """Path `d` del contorno de la mano izquierda (cacheado)."""
-    if "d" in _PATH_CACHE:
-        return _PATH_CACHE["d"]
-    mask = build_mask()
-    contour = _trace_contour(mask)
-    simp = _rdp_closed(contour, eps)
-    d = _segments_to_d(_catmull_closed(simp))
-    _PATH_CACHE["d"] = d
-    _PATH_CACHE["points"] = len(simp)
+def _line_d(pts):
+    """Build a smooth SVG path for a line through points."""
+    if len(pts) < 2:
+        return ""
+    d = f"M{pts[0][0]},{pts[0][1]}"
+    for i in range(1, len(pts)):
+        prev = pts[i - 1]
+        curr = pts[i]
+        cpx = (prev[0] + curr[0]) / 2
+        cpy = (prev[1] + curr[1]) / 2
+        d += f" Q{prev[0]},{prev[1]} {cpx},{cpy}"
+    d += f" L{pts[-1][0]},{pts[-1][1]}"
     return d
 
 
 def hand_svg(side="L"):
-    d = hand_path_d()
-    transform = ""
+    """Return the SVG string for the given side (used by compositor)."""
+    outline_pts = build_hand_outline()
+    outline_d = smooth_path(outline_pts, closed=True)
+    landmarks = []
+    for fname, fi in FINGERS.items():
+        landmarks.append((_finger_tip_cx(fi), _finger_tip_cy(fi)))
+    landmarks.append((PALM_CX - WRIST_W // 2, WRIST_BOTTOM))
+    landmarks.append((PALM_CX + WRIST_W // 2, WRIST_BOTTOM))
+    svg = build_hand_svg(side, outline_d, landmarks)
     if side.upper() == "R":
-        transform = f' transform="translate({VIEWBOX},0) scale(-1,1)"'
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" '
-            f'viewBox="0 0 {VIEWBOX} {VIEWBOX}">'
-            f'<path d="{d}" fill="{SKIN}" stroke="{SKIN_LINE}" '
-            f'stroke-width="{STROKE_W:.0f}" stroke-linejoin="round"'
-            f'{transform}/></svg>')
+        svg = svg.replace('<g ', '<g transform="translate(1024,0) scale(-1,1)" ', 1)
+    return svg
 
 
 def content_bbox():
-    """BBox real (x0,y0,x1,y1) del contenido de la mano en el viewBox."""
-    if "bbox" in _PATH_CACHE:
-        return _PATH_CACHE["bbox"]
-    import numpy as np
-    mask = build_mask()
-    ys, xs = np.where(mask)
-    bbox = (float(xs.min()), float(ys.min()), float(xs.max()), float(ys.max()))
-    _PATH_CACHE["bbox"] = bbox
-    return bbox
+    """Return (x0, y0, x1, y1) bounding box of the hand content (fingers + palm + thumb)."""
+    # Include all finger tips and thumb tip
+    ys = [_finger_tip_cy(fi) for fi in FINGERS.values()]
+    xs = [_finger_tip_cx(fi) for fi in FINGERS.values()]
+    # Thumb tip
+    th_cx = PALM_CX + THUMB["x_off"]
+    th_cy = PALM_CY + THUMB["y_off"]
+    th_len = THUMB["len"]
+    th_angle = math.radians(THUMB["angle_deg"])
+    th_tip_y = th_cy - th_len * math.cos(th_angle)
+    th_tip_x = th_cx + th_len * math.sin(th_angle)
+    xs.append(th_tip_x)
+    ys.append(th_tip_y)
+    # Palm edges
+    palm_lx = PALM_CX - PALM_W // 2
+    palm_rx = PALM_CX + PALM_W // 2
+    xs.extend([palm_lx, palm_rx])
+    ys.extend([PALM_CY - PALM_H // 2, WRIST_BOTTOM])
+    pad = 30
+    return (min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
 
 
-# ── Landmarks y anclas de overlays ──────────────────────────────────────
-def derived_landmarks():
-    lm = {}
-    for name, p in FINGERS.items():
-        bx, by = p["base"]
-        tx, ty = p["tip"]
-        lm[name] = {"base": [bx, by], "tip": [tx, ty],
-                    "mid": [(bx + tx) / 2.0, (by + ty) / 2.0],
-                    "width": p["wb"]}
-    lm["thumb"] = {"base": list(THUMB["base"]), "tip": list(THUMB["tip"]),
-                   "mid": [(THUMB["base"][0] + THUMB["tip"][0]) / 2.0,
-                           (THUMB["base"][1] + THUMB["tip"][1]) / 2.0],
-                   "width": THUMB["wb"]}
-    lm["palm"] = {"center": list(PALM_CENTER), "radii": list(PALM_RADII)}
-    lm["wrist"] = {"center": [(WRIST["x0"] + WRIST["x1"]) / 2.0,
-                              (WRIST["y0"] + WRIST["y1"]) / 2.0],
-                   "width": WRIST["x1"] - WRIST["x0"]}
-    return lm
-
-
-def landmarks_json(side="L"):
-    lm = derived_landmarks()
-    if side.upper() == "R":
-        for item in lm.values():
-            for key in ("base", "tip", "mid", "center"):
-                if key in item:
-                    item[key][0] = VIEWBOX - item[key][0]
-    return {"viewBox": [VIEWBOX, VIEWBOX], "side": side.upper(), "landmarks": lm}
+def anchors(side="L"):
+    """Return line paths and mount positions in viewBox coordinates.
+    Format: {"corazon": [(x,y),...], "cabeza": [...], ...}, {"venus": (x,y,r), ...}"""
+    # Line paths: each is a list of (x,y) points
+    lines = {
+        "vida": [
+            (PALM_CX - 120, PALM_CY - 120),
+            (PALM_CX - 140, PALM_CY - 40),
+            (PALM_CX - 130, PALM_CY + 40),
+            (PALM_CX - 90, PALM_CY + 110),
+            (PALM_CX - 40, PALM_CY + 140),
+        ],
+        "corazon": [
+            (PALM_CX - 160, PALM_CY - 80),
+            (PALM_CX - 80, PALM_CY - 95),
+            (PALM_CX + 0, PALM_CY - 100),
+            (PALM_CX + 80, PALM_CY - 90),
+            (PALM_CX + 140, PALM_CY - 70),
+        ],
+        "cabeza": [
+            (PALM_CX - 150, PALM_CY - 30),
+            (PALM_CX - 60, PALM_CY - 20),
+            (PALM_CX + 30, PALM_CY - 10),
+            (PALM_CX + 110, PALM_CY + 10),
+            (PALM_CX + 170, PALM_CY + 30),
+        ],
+        "destino": [
+            (PALM_CX + 5, PALM_CY - 120),
+            (PALM_CX + 0, PALM_CY - 50),
+            (PALM_CX - 5, PALM_CY + 20),
+            (PALM_CX + 0, PALM_CY + 80),
+        ],
+    }
+    # Mount positions: (x, y, radius)
+    mounts = {
+        "jupiter":  (PALM_CX - 65,  PALM_CY - 100, 22),
+        "saturno":  (PALM_CX + 5,   PALM_CY - 115, 22),
+        "sol":      (PALM_CX + 75,  PALM_CY - 100, 20),
+        "mercurio": (PALM_CX + 135, PALM_CY - 55,  18),
+        "venus":    (PALM_CX - 100, PALM_CY + 80,  35),
+    }
+    return lines, mounts
 
 
 def palm_line_anchors():
-    """Puntos de control (p0,c1,c2,p3) de las 4 lineas, dentro de la palma."""
-    return {
-        "vida": [(462, 560), (430, 640), (440, 760), (492, 845)],
-        "cabeza": [(660, 600), (585, 618), (470, 610), (352, 560)],
-        "corazon": [(662, 648), (585, 560), (470, 542), (352, 602)],
-        "destino": [(500, 520), (500, 640), (492, 760), (492, 848)],
-    }
+    """Return only line anchors (used by compositor scene 3)."""
+    lines, _ = anchors()
+    return lines
 
 
-def palm_mounts():
-    return {
-        "venus": (645, 780, 92),
-        "jupiter": (430, 512, 54),
-        "saturno": (500, 500, 50),
-        "sol": (590, 512, 50),
-        "mercurio": (676, 566, 46),
-    }
+def emit_svg(side="L"):
+    outline_pts = build_hand_outline()
+    outline_d = smooth_path(outline_pts, closed=True)
+    landmarks = []
+    for fname, fi in FINGERS.items():
+        landmarks.append((_finger_tip_cx(fi), _finger_tip_cy(fi)))
+    landmarks.append((PALM_CX - WRIST_W // 2, WRIST_BOTTOM))
+    landmarks.append((PALM_CX + WRIST_W // 2, WRIST_BOTTOM))
+
+    svg = build_hand_svg(side, outline_d, landmarks)
+
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    SVG_OUT.write_text(svg, encoding="utf-8")
+
+    rsvg = svg.replace('<g ', '<g transform="translate(1024,0) scale(-1,1)" ', 1)
+    rpath = OUT_DIR / "mano_derecha_v9.svg"
+    rpath.write_text(rsvg, encoding="utf-8")
+
+    lm = {"side": side, "fingers": {}, "wrist": landmarks[-2:],
+          "palm_center": [PALM_CX, PALM_CY], "viewbox": VB}
+    for fname, fi in FINGERS.items():
+        lm["fingers"][fname] = {
+            "tip": [_finger_tip_cx(fi), _finger_tip_cy(fi)],
+            "base_left": [_finger_left(fi), FINGER_BASE_Y],
+            "base_right": [_finger_right(fi), FINGER_BASE_Y],
+        }
+    JSON_OUT.write_text(json.dumps(lm, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    return SVG_OUT, rsvg, lm
 
 
-# ── QA: exactamente cinco dedos ─────────────────────────────────────────
-def count_digits(mask):
-    """Cuenta dedos como componentes con punta por encima de la palma."""
-    import numpy as np
-    from scipy import ndimage
-    yy, xx = np.ogrid[:VIEWBOX, :VIEWBOX]
-    disk = ((xx - PALM_CENTER[0]) ** 2 + (yy - PALM_CENTER[1]) ** 2) < 205 ** 2
-    m = mask & ~disk
-    m[int(PALM_CENTER[1] + 200):, :] = False
-    lab, n = ndimage.label(m)
-    digits = 0
-    for i in range(1, n + 1):
-        ys, xs = np.where(lab == i)
-        if len(ys) < 800:
-            continue
-        if ys.min() < PALM_CENTER[1] - 90:  # la punta está por encima de la palma
-            digits += 1
-    return digits
+def selftest():
+    """Verify the hand has proper finger tips and shape."""
+    outline_pts = build_hand_outline()
 
+    # Check we have enough points for a smooth hand
+    n_pts = len(outline_pts)
 
-def selftest(side="L"):
-    import numpy as np
-    svg = hand_svg(side)
-    mask, _ = svg_render.render_svg_to_mask(svg, VIEWBOX, VIEWBOX)
-    mask = mask > 0
-    digits = count_digits(mask)
-    return {"side": side.upper(), "digits": digits, "ok": digits == 5,
-            "path_points": _PATH_CACHE.get("points")}
+    # Check finger tips are in the right region (upper portion of viewBox)
+    tips_y = [_finger_tip_cy(fi) for fi in FINGERS.values()]
+    tips_above_palm = sum(1 for y in tips_y if y < PALM_CY - PALM_H // 2)
 
+    # Check no finger tip is below the palm
+    tips_below_palm = sum(1 for y in tips_y if y > PALM_CY)
 
-def emit_all():
-    HANDS_DIR.mkdir(parents=True, exist_ok=True)
-    written = []
-    for side in ("L", "R"):
-        fp = HANDS_DIR / f"HAND_{side}_PALM_FRONT_EDITORIAL_V001.svg"
-        fp.write_text(hand_svg(side), encoding="utf-8")
-        written.append(str(fp))
-        meta = fp.with_suffix(".landmarks.json")
-        meta.write_text(json.dumps(landmarks_json(side), indent=2,
-                                   ensure_ascii=False), encoding="utf-8")
-        written.append(str(meta))
-    return written
+    # Check finger separation: tips should be spread horizontally
+    tips_x = sorted([_finger_tip_cx(fi) for fi in FINGERS.values()])
+    spread = tips_x[-1] - tips_x[0]
 
+    ok = (tips_above_palm == 4 and tips_below_palm == 0
+          and spread > 200 and n_pts > 40)
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--emit", action="store_true")
-    ap.add_argument("--selftest", action="store_true")
-    ap.add_argument("--landmarks", action="store_true")
-    a = ap.parse_args()
-    if a.landmarks:
-        print(json.dumps(landmarks_json("L"), indent=2, ensure_ascii=False))
-    if a.emit:
-        for fp in emit_all():
-            print("escrito:", fp)
-    if a.selftest or not (a.emit or a.landmarks):
-        print(json.dumps(selftest("L"), ensure_ascii=False))
+    print(json.dumps({
+        "side": "L",
+        "ok": ok,
+        "outline_points": n_pts,
+        "finger_tips_above_palm": tips_above_palm,
+        "finger_spread_px": spread,
+        "finger_tips_y": tips_y,
+        "finger_tips_x": tips_x,
+    }, indent=2))
+    return ok
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Hand geometry v9")
+    parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--emit", action="store_true")
+    args = parser.parse_args()
+
+    if args.selftest:
+        ok = selftest()
+        sys.exit(0 if ok else 1)
+    elif args.emit:
+        svg_l, svg_r, lm = emit_svg()
+        print(f"L: {svg_l}")
+        print(f"R: {OUT_DIR / 'mano_derecha_v9.svg'}")
+        print(f"JSON: {JSON_OUT}")
+    else:
+        svg_l, svg_r, lm = emit_svg()
+        ok = selftest()
+        print(f"Emitted: {svg_l}")
+        print(f"Selftest: {'PASS' if ok else 'FAIL'}")
