@@ -1,5 +1,35 @@
 # Changelog
 
+## [V9.1] — Mano sólida PNG Cairo (fix wireframe)
+
+### Corregido
+- **Mano wireframe/sin relleno:** `svg_render` solo dibujaba strokes,
+  nunca fills. La mano salía como un outline transparente.
+  Solución: `hand_render.py` renderiza la mano con **Cairo directo**
+  (fill + stroke) a PNG 1024×1024 RGBA. El compositor carga el PNG
+  pre-renderizado en vez de usar svg_render.
+- PNGs: `mano_izquierda_solid.png`, `mano_derecha_solid.png`
+- Gradiente piel `#FADEC9` → `#E8B88A`, borde `#D4A574`
+- Líneas gruesas coloridas + montes sólidos con halo
+
+## [V9.0] — Mano anatómica, textos legibles, narración pausada
+
+### Corregido
+- **Mano deforme (blob):** reescritura completa de `hand_geometry.py`
+  con contorno Bézier Catmull-Rom (76 puntos). Palma ancha 380px,
+  4 dedos separados con punta redondeada, pulgar lateral.
+- **Textos ilegibles:** títulos 60px, labels 30px, footer 22px, SRT 38px.
+- **Narración robótica:** guion canned con pausas (...) y frases cortas.
+  VoiceStudio OmniVoice como motor principal.
+- **Líneas delgadas:** grosor 8-13px con glow.
+
+### Añadido
+- `hand_render.py`: renderizador PNG con Cairo (fill + stroke)
+- `content_bbox()` para encuadre correcto de la mano
+- Short 9:16 nativo (no recorte)
+- `docs/BRAND_GUIDELINES.md` para quiromancia, astrología, tarot
+- Monitor rediseñado con historial, engine selector, GPU bars
+
 ## [V8.1] — Mano de alta calidad y encuadre
 
 ### Corregido

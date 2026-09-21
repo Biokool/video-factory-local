@@ -32,9 +32,10 @@ para fondos/historia/mitología); `research.json` se conserva como metadata.
 
 | Módulo | Responsabilidad |
 |---|---|
-| `hand_geometry.py` | Mano anatómica determinista (palma + 4 dedos + pulgar + muñeca) rasterizada, con el contorno exterior trazado a **un único path Bézier**. Define landmarks, `content_bbox()` y anclas de líneas/montes. Emite SVG maestro L/R. |
-| `svg_render.py` | Tokenizador mínimo SVG→Cairo (M/L/H/V/C/S/Z, `<g>`, círculos/elipses/rects). Sin `cairosvg`. Rasteriza a máscara para QA. |
-| `compositor.py` | Compositor por capas. Reemplaza a `generate_images.py`. |
+| `hand_geometry.py` | Mano anatómica determinista (palma + 4 dedos + pulgar + muñeca). Define landmarks, `content_bbox()`, anclas de líneas/montes. Contorno Bézier Catmull-Rom (76 puntos). Emite SVG + landmarks JSON. |
+| `hand_render.py` | Renderiza la mano como **PNG sólido** con Cairo directo (fill gradiente piel + stroke borde + líneas gruesas coloridas + montes sólidos). Soluciona el bug de svg_render que solo dibujaba strokes. |
+| `svg_render.py` | Tokenizador mínimo SVG→Cairo. Usado como fallback si falta el PNG. |
+| `compositor.py` | Compositor por capas. Carga PNG pre-renderizado de mano. Reemplaza a `generate_images.py`. |
 | `asset_registry.py` | Resolución segura de `asset_id` → ruta (confina a `assets/`), máquina de estados y detección de huérfanos. |
 | `policy_gate.py` | Puerta comercial fail-closed (voz, licencias, estado de assets). |
 

@@ -1,12 +1,14 @@
-# AI Video Factory - Local (V8)
+# AI Video Factory - Local (V9.1)
 
-Fábrica local de videos con IA: Ollama (LLM/embeddings) + TTS local +
-Supabase/pgvector (RAG) + FFmpeg, con un **motor visual vectorial
-determinista** para la mano y los overlays de quiromancia.
+Fábrica local de videos con IA: Ollama (LLM/embeddings) + TTS local
+(VoiceStudio/SAPI) + FFmpeg, con **mano sólida renderizada por Cairo**
+y motor visual determinista para quiromancia.
 
 - Arquitectura vigente: [`docs/v8/ARQUITECTURA-V8.md`](docs/v8/ARQUITECTURA-V8.md)
 - Resultados de verificación: [`docs/v8/VERIFICACION-V8.md`](docs/v8/VERIFICACION-V8.md)
+- Directrices de marca: [`docs/BRAND_GUIDELINES.md`](docs/BRAND_GUIDELINES.md)
 - Cambios: [`CHANGELOG.md`](CHANGELOG.md)
+- Ejemplos para validación: [`examples/`](examples/)
 - Contratos V7 homologados: [`docs/v7/`](docs/v7/)
 
 ## Estado del sistema

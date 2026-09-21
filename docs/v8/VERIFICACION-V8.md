@@ -1,20 +1,40 @@
-# Verificación V8 — resultados medidos
+# Verificación V8/V9 — resultados medidos
 
 Todos los comandos se ejecutan desde la raíz del proyecto con el intérprete
 con dependencias. Resultados obtenidos en la máquina de producción.
 
-## 1. Mano vectorial — 5 dedos (V8.1)
+## 1. Mano sólida PNG (V9.1 fix)
 
+```
+python scripts/v8/hand_render.py
+L: assets/v8/hands/mano_izquierda_solid.png
+R: assets/v8/hands/mano_derecha_solid.png
+```
+
+Verificación de píxeles:
+```
+Tamaño: 1024×1024 RGBA
+Píxeles opacos: 156658/1048576 (14.9%)
+Color palma (512,590): RGBA=(250, 222, 201, 255) = #FADDC9 ✓
+```
+
+La mano se renderiza con **Cairo directo** (fill + stroke), no con
+svg_render (que solo dibujaba strokes → wireframe). El compositor
+carga el PNG pre-renderizado via `cairo.ImageSurface.create_from_png()`.
+
+### Geometría (V9 hand_geometry)
 ```
 python scripts/v8/hand_geometry.py --selftest
-{"side": "L", "digits": 5, "ok": true, "path_points": 67}
-# espejo derecho:
-{'side': 'R', 'digits': 5, 'ok': True, 'path_points': 67}
+{
+  "side": "L",
+  "ok": true,
+  "outline_points": 76,
+  "finger_tips_above_palm": 4,
+  "finger_spread_px": 220,
+  "finger_tips_y": [190, 160, 195, 245],
+  "finger_tips_x": [407, 482, 557, 627]
+}
 ```
-
-La mano se construye por primitivas anatómicas y se traza a un único path
-Bézier cerrado (línea exterior continua, sin trazos internos). QA: 5
-componentes con punta por encima de la palma, en ambas lateralidades.
 
 ## 2. Registro de assets
 
