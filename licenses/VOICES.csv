@@ -1,0 +1,3 @@
+voice,name,engine,license,commercial_use,status,obligations
+sabina_es_mx,Microsoft Sabina Desktop,SAPI,BUNDLED,YES,VERIFIED,none
+omnivoice_alloy,OmniVoice Alloy,VoiceStudio,CC-BY-NC,NO,BLOCKED,non-commercial only

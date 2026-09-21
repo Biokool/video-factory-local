@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-corazon">
+    <path id="path-corazon" d="M480,620 Q480,620 540.0,600.0 Q600,580 670.0,570.0 Q740,560 810.0,570.0 Q880,580 940.0,600.0 L1000,620"
+          stroke="#FF6B9D" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

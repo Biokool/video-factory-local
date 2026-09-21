@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-09-21T15:47:30.369008",
+  "python": {
+    "status": "OK",
+    "version": "3.11.15 (main, Jun 23 2026, 15:20:37) [MSC v.1944 64 bit (AMD64)]",
+    "executable": "C:\\Users\\mauri\\AppData\\Local\\hermes\\hermes-agent\\venv\\Scripts\\python.exe",
+    "platform": "Windows-10-10.0.19045-SP0"
+  },
+  "ffmpeg": {
+    "status": "OK",
+    "version": "ffmpeg version 8.1.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg "
+  },
+  "ollama": {
+    "status": "OK",
+    "version": "0.34.0",
+    "backend": "cpu"
+  },
+  "voicestudio": {
+    "status": "OK",
+    "version": "0.5.2"
+  },
+  "gpu": {
+    "status": "OK",
+    "name": "NVIDIA GeForce GTX 1050",
+    "vram_mb": 4096,
+    "driver": "546.29"
+  },
+  "disk": {
+    "status": "UNKNOWN"
+  },
+  "profile": {
+    "id": "LEGACY_PASCAL_4GB",
+    "gpu_vram_gb": 4.0,
+    "ollama_backend": "cpu",
+    "max_gpu_heavy_processes": 1,
+    "image_generation_required": false
+  },
+  "gates": {
+    "gate_1_environment": true
+  }
+}

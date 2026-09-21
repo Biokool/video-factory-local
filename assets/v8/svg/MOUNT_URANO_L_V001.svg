@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="mount-urano">
+    <circle class="halo" cx="700" cy="480" r="36" fill="#44FFFF" opacity="0.2"/>
+    <circle id="circle-urano" cx="700" cy="480" r="18" fill="#44FFFF" opacity="0.9"/>
+    <circle cx="700" cy="480" r="18" fill="none" stroke="white" stroke-width="3" opacity="0.8"/>
+  </g>
+</svg>

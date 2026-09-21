@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="mount-marte_pos">
+    <circle class="halo" cx="520" cy="760" r="40" fill="#FF4444" opacity="0.2"/>
+    <circle id="circle-marte_pos" cx="520" cy="760" r="20" fill="#FF4444" opacity="0.9"/>
+    <circle cx="520" cy="760" r="20" fill="none" stroke="white" stroke-width="3" opacity="0.8"/>
+  </g>
+</svg>

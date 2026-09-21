@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-cabeza">
+    <path id="path-cabeza" d="M520,760 Q520,760 580.0,750.0 Q640,740 710.0,730.0 Q780,720 850.0,710.0 Q920,700 980.0,690.0 L1040,680"
+          stroke="#FFA500" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

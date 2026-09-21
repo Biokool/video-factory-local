@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-09-21T15:47:30.852581",
+  "checks": {
+    "gitignore": {
+      "status": "PASS",
+      "missing": []
+    },
+    "secrets": {
+      "status": "PASS",
+      "found": []
+    },
+    "env_file": {
+      "status": "PASS",
+      "issues": []
+    },
+    "localhost": {
+      "status": "WARN",
+      "issues": [
+        "security_audit.py: bind a 0.0.0.0 (público)",
+        "hand_render.py: posiblemente no localhost",
+        "svg_render.py: posiblemente no localhost"
+      ]
+    },
+    "svg_safety": {
+      "status": "PASS",
+      "issues": []
+    }
+  },
+  "overall": "PASS",
+  "gates": {
+    "gate_0_security": true
+  }
+}

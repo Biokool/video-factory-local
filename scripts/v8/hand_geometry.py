@@ -36,7 +36,7 @@ FINGERS = {
     "menique":   {"x_off":  115, "len": 195, "base_w": 44, "tip_w": 30},
 }
 # Thumb: originates from lower-left of palm, angles outward
-THUMB = {"x_off": -175, "y_off": 110, "len": 210, "base_w": 56, "tip_w": 38,
+THUMB = {"x_off": -220, "y_off": 110, "len": 210, "base_w": 56, "tip_w": 38,
          "angle_deg": -35}  # angle from vertical (negative = leftward)
 
 # Wrist

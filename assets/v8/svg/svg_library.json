@@ -1,0 +1,434 @@
+[
+  {
+    "asset_id": "LINE_VIDA_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_VIDA_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "488f3f21750b79ae5491371555103967f5181c20806e97a510f810bff8aea0c3"
+  },
+  {
+    "asset_id": "LINE_CABEZA_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_CABEZA_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "2528c84ae7715a994b7a55b498a6e785cd597527361d4ea0e35b9fd4e0a8c891"
+  },
+  {
+    "asset_id": "LINE_CORAZON_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_CORAZON_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "65f0b4a71e10d11bad74b003fa2c79e791594f03ea0488c8fa4f1dd5386c358e"
+  },
+  {
+    "asset_id": "LINE_DESTINO_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_DESTINO_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "923f77b316a1f5831b5673d0107148d7b901a48086260527b52aafe3616a0469"
+  },
+  {
+    "asset_id": "LINE_SOL_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_SOL_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "8ac5130e2dfbafe29d33f85d85931a0a6d920c2d8b9e461ac63a735ef44d2740"
+  },
+  {
+    "asset_id": "LINE_MERCURIO_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_MERCURIO_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "91af257542b829158166db1eff4b317bbb37bb34a0ba350a64b70defc6f36a52"
+  },
+  {
+    "asset_id": "LINE_MARTE_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_MARTE_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "2bbb29ef761151de7ee6d4415055a3fbf2806327d683a5e84c6a2a81bdddc094"
+  },
+  {
+    "asset_id": "LINE_INTUICION_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_INTUICION_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "bfcdb5b7989dd487a279e624faefe7ddca1a646d705292034a0031f7e1cdf02e"
+  },
+  {
+    "asset_id": "MOUNT_VENUS_L_V001",
+    "file": "assets/v8/svg/MOUNT_VENUS_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "17e225439ebca0bac1a6ddcec6c4a202f410affa3ad06615cea2b5027fedfe82"
+  },
+  {
+    "asset_id": "MOUNT_JUPITER_L_V001",
+    "file": "assets/v8/svg/MOUNT_JUPITER_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "5f536139832bef0a6cfe5cf6174ea99d28eb7d3091bd93852352a089dfb31ee5"
+  },
+  {
+    "asset_id": "MOUNT_SATURNO_L_V001",
+    "file": "assets/v8/svg/MOUNT_SATURNO_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "620d35e0a5aa473c089cc782438f29cd26c2cbccb057da9e2b898a4b24625ee8"
+  },
+  {
+    "asset_id": "MOUNT_SOL_L_V001",
+    "file": "assets/v8/svg/MOUNT_SOL_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "aa5b8c0005a18327c949cebe45d20b2a51a4c461f20b2fa07b669a46df05a5e7"
+  },
+  {
+    "asset_id": "MOUNT_MERCURIO_L_V001",
+    "file": "assets/v8/svg/MOUNT_MERCURIO_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "5ea11f8455548e021f37b3760265c18196911dea42f18062ec488a717b5452d4"
+  },
+  {
+    "asset_id": "MOUNT_LUNA_L_V001",
+    "file": "assets/v8/svg/MOUNT_LUNA_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "fa2f8d9c6ad8877c8b40a611e301789d63a5c8b14d1003df3e41a46ed078a35c"
+  },
+  {
+    "asset_id": "MOUNT_MARTE_POS_L_V001",
+    "file": "assets/v8/svg/MOUNT_MARTE_POS_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "476a01853dbeff9bd1f41ca548e181c612e82e8f6b61a84a31d84eb75d4dbf25"
+  },
+  {
+    "asset_id": "MOUNT_MARTE_NEG_L_V001",
+    "file": "assets/v8/svg/MOUNT_MARTE_NEG_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "6260f9f194e19f5d69f447a97ca82249b723a15ba0141424209ae68b4fe2b61b"
+  },
+  {
+    "asset_id": "MOUNT_URANO_L_V001",
+    "file": "assets/v8/svg/MOUNT_URANO_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "e03b7bee9e1713942e414dbc4cb9f9f245be0ea67b679bb7088a2e811fd1378d"
+  },
+  {
+    "asset_id": "MOUNT_NEPTUNO_L_V001",
+    "file": "assets/v8/svg/MOUNT_NEPTUNO_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "dfca3f15fc2ce6064b2b778d4b9d931897a6d4e22b8342b64d2111101e5d8e74"
+  },
+  {
+    "asset_id": "MOUNT_PLUTON_L_V001",
+    "file": "assets/v8/svg/MOUNT_PLUTON_L_V001.svg",
+    "type": "MOUNT",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "5efa27d075cdbda57e4d69dc166a758fa2ae69425c892c0155af420f4209ca94"
+  },
+  {
+    "asset_id": "SIGN_CRUZ_V001",
+    "file": "assets/v8/svg/SIGN_CRUZ_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "eed794c95759a6923ced9c6308e39842268f2ec249e5bb157a3c34ea910b273e"
+  },
+  {
+    "asset_id": "SIGN_DOBLE_CRUZ_V001",
+    "file": "assets/v8/svg/SIGN_DOBLE_CRUZ_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "10ffc317162f47cae0937536ec8a2c77e70ca677314ff7bd13a46f5d57550c59"
+  },
+  {
+    "asset_id": "SIGN_ESTRELLA_V001",
+    "file": "assets/v8/svg/SIGN_ESTRELLA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "f7cfd6d0db5518fd970e6488e33d317c8c8dc0b47bf269744622f01e20496180"
+  },
+  {
+    "asset_id": "SIGN_TRIANGULO_V001",
+    "file": "assets/v8/svg/SIGN_TRIANGULO_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "3362f81ebb01113d0edd5e950116a1624ac007b63707c7f23a75bef97cdc0d63"
+  },
+  {
+    "asset_id": "SIGN_CUADRADO_V001",
+    "file": "assets/v8/svg/SIGN_CUADRADO_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "2a5ed047990fcdb6b9319aa2893698b1cc8382f954725a6efbd7b0d2314a1281"
+  },
+  {
+    "asset_id": "SIGN_REJILLA_V001",
+    "file": "assets/v8/svg/SIGN_REJILLA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "8ce72ccd999490b52c07aa21282ada55e0c81592d443345f4a80406bf0aed3ba"
+  },
+  {
+    "asset_id": "SIGN_PUNTO_V001",
+    "file": "assets/v8/svg/SIGN_PUNTO_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "dc5c382014a20857c20c3a3d364e2a9168f8b7bbff636421198f38e8290fa7cd"
+  },
+  {
+    "asset_id": "SIGN_ISLA_V001",
+    "file": "assets/v8/svg/SIGN_ISLA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "a264ea87d268aafc73cf5b3bf2e52e0ec1c7087dc68d42f89e64299e6dec4f84"
+  },
+  {
+    "asset_id": "SIGN_CADENA_V001",
+    "file": "assets/v8/svg/SIGN_CADENA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "0fa3fd5b5a2c584438ac5ee71b4c50f70f98663f6fcf6ccceb1f10f0b1810c0e"
+  },
+  {
+    "asset_id": "SIGN_RUPTURA_V001",
+    "file": "assets/v8/svg/SIGN_RUPTURA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "3bcfa270b41e92c8f403a7414f9b4ec7b5ad0495d1977fb7295c911d32902b4d"
+  },
+  {
+    "asset_id": "SIGN_RAMA_V001",
+    "file": "assets/v8/svg/SIGN_RAMA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "95945486b91249ca262291200933414a796e090e82b93c41e599e559f4dced7a"
+  },
+  {
+    "asset_id": "SIGN_LINEAS_PARALELAS_V001",
+    "file": "assets/v8/svg/SIGN_LINEAS_PARALELAS_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "801c6c51c88e840edaccf2b5a50b2e866bfdcc13c972d900f5beaabccc69b2df"
+  },
+  {
+    "asset_id": "SIGN_FINAL_PINCEL_V001",
+    "file": "assets/v8/svg/SIGN_FINAL_PINCEL_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "b237402309cb08f6e0ef72f05f4fc63a9081757206e10173f82ecb31711c7cef"
+  },
+  {
+    "asset_id": "SIGN_CIRCULO_RESALTADO_V001",
+    "file": "assets/v8/svg/SIGN_CIRCULO_RESALTADO_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "54c97d7527f82927071f059221ba9e5de1404489f2b0e7fed1554de961f5fcbc"
+  },
+  {
+    "asset_id": "SIGN_FLECHA_V001",
+    "file": "assets/v8/svg/SIGN_FLECHA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "89c69bda46cddb9f6748c30814fcbb3fecaf6a11eb69131b1c881e2814e4449e"
+  },
+  {
+    "asset_id": "SIGN_CONECTOR_V001",
+    "file": "assets/v8/svg/SIGN_CONECTOR_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "45e958d040f72ebd48d3e5f70a3247c8d150cbbe39ab123213c0a494d0b1349c"
+  },
+  {
+    "asset_id": "SIGN_LUPA_V001",
+    "file": "assets/v8/svg/SIGN_LUPA_V001.svg",
+    "type": "SIGN",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "e63739e51101c47ca8f50a17773d5735dbf429122065a6f7e7b0806285662a49"
+  }
+]

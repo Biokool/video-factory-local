@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-vida">
+    <path id="path-vida" d="M640,520 Q640,520 610.0,600.0 Q580,680 570.0,760.0 Q560,840 590.0,900.0 Q620,960 660.0,990.0 L700,1020"
+          stroke="#00D4FF" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

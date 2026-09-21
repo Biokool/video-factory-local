@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="mount-saturno">
+    <circle class="halo" cx="740" cy="520" r="56" fill="#FFD93D" opacity="0.2"/>
+    <circle id="circle-saturno" cx="740" cy="520" r="28" fill="#FFD93D" opacity="0.9"/>
+    <circle cx="740" cy="520" r="28" fill="none" stroke="white" stroke-width="3" opacity="0.8"/>
+  </g>
+</svg>

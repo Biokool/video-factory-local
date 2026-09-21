@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="sign-cruz"><line x1="1024" y1="984" x2="1024" y2="1064" stroke="white" stroke-width="4"/><line x1="984" y1="1024" x2="1064" y2="1024" stroke="white" stroke-width="4"/></g>
+</svg>

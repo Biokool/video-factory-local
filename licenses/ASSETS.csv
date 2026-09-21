@@ -1,0 +1,14 @@
+asset_id,type,file,license,commercial_use,status
+HAND_L_PALM_FRONT_V001,HAND,assets/v8/hands/mano_izquierda_v9.svg,project_owned,YES,FROZEN
+HAND_R_PALM_FRONT_V001,HAND,assets/v8/hands/mano_derecha_v9.svg,project_owned,YES,FROZEN
+HAND_L_SOLID_V001,HAND_PNG,assets/v8/hands/mano_izquierda_solid.png,project_owned,YES,FROZEN
+HAND_R_SOLID_V001,HAND_PNG,assets/v8/hands/mano_derecha_solid.png,project_owned,YES,FROZEN
+LINE_VIDA_L_BASE_V001,LINE,assets/v8/svg/LINE_VIDA_L_BASE_V001.svg,project_owned,YES,FROZEN
+LINE_CABEZA_L_BASE_V001,LINE,assets/v8/svg/LINE_CABEZA_L_BASE_V001.svg,project_owned,YES,FROZEN
+LINE_CORAZON_L_BASE_V001,LINE,assets/v8/svg/LINE_CORAZON_L_BASE_V001.svg,project_owned,YES,FROZEN
+LINE_DESTINO_L_BASE_V001,LINE,assets/v8/svg/LINE_DESTINO_L_BASE_V001.svg,project_owned,YES,FROZEN
+MOUNT_VENUS_L_V001,MOUNT,assets/v8/svg/MOUNT_VENUS_L_V001.svg,project_owned,YES,FROZEN
+MOUNT_JUPITER_L_V001,MOUNT,assets/v8/svg/MOUNT_JUPITER_L_V001.svg,project_owned,YES,FROZEN
+MOUNT_SATURNO_L_V001,MOUNT,assets/v8/svg/MOUNT_SATURNO_L_V001.svg,project_owned,YES,FROZEN
+MOUNT_SOL_L_V001,MOUNT,assets/v8/svg/MOUNT_SOL_L_V001.svg,project_owned,YES,FROZEN
+MOUNT_MERCURIO_L_V001,MOUNT,assets/v8/svg/MOUNT_MERCURIO_L_V001.svg,project_owned,YES,FROZEN

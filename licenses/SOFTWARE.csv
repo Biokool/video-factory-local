@@ -1,0 +1,7 @@
+software,name,version,license,commercial_use,status,obligations
+Python,CPython,3.12+,PSF,YES,VERIFIED,none
+FFmpeg,FFmpeg,7.x,LGPL/GPL,YES,VERIFIED,attribution
+Cairo,pycairo,1.25+,LGPL-2.1,YES,VERIFIED,attribution
+Pillow,Pillow,10.x,MIT-CIL,YES,VERIFIED,none
+PyYAML,PyYAML,6.x,MIT,YES,VERIFIED,none
+requests,requests,2.x,Apache-2.0,YES,VERIFIED,attribution
