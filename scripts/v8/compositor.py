@@ -65,6 +65,25 @@ SCFG = {
 HAND_SVG_L = hg.hand_svg("L")
 HAND_SVG_R = hg.hand_svg("R")
 
+# Pre-rendered solid hand PNGs (filled, with lines and mounts)
+HAND_PNG_L = SCRIPT_DIR / "assets" / "v8" / "hands" / "mano_izquierda_solid.png"
+HAND_PNG_R = SCRIPT_DIR / "assets" / "v8" / "hands" / "mano_derecha_solid.png"
+
+def _load_png(path):
+    """Load a PNG file into a Cairo ImageSurface."""
+    if path.exists():
+        return cairo.ImageSurface.create_from_png(str(path))
+    return None
+
+_HAND_PNG_CACHE = {}
+
+def _get_hand_png(side):
+    key = side.upper()
+    if key not in _HAND_PNG_CACHE:
+        p = HAND_PNG_L if key == "L" else HAND_PNG_R
+        _HAND_PNG_CACHE[key] = _load_png(p)
+    return _HAND_PNG_CACHE[key]
+
 
 def load_visual_profile(name="cosmic_educational_v1"):
     try:
@@ -293,15 +312,26 @@ def _box_for_content(cx, cy, target_h):
 
 
 def draw_hand(ctx, box, side="L", alpha=1.0):
+    """Draw pre-rendered solid hand PNG (filled, with lines and mounts)."""
     x, y, w, h = box
-    svg = HAND_SVG_L if side.upper() == "L" else HAND_SVG_R
+    png = _get_hand_png(side)
+    if png is None:
+        # Fallback to SVG if PNG missing
+        svg = HAND_SVG_L if side.upper() == "L" else HAND_SVG_R
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.scale(w / hg.VIEWBOX, h / hg.VIEWBOX)
+        ctx.set_source_rgba(1, 1, 1, alpha)
+        ctx.push_group()
+        svg_render.draw_svg(ctx, svg, 1.0)
+        ctx.pop_group_to_source()
+        ctx.paint_with_alpha(alpha)
+        ctx.restore()
+        return
     ctx.save()
     ctx.translate(x, y)
     ctx.scale(w / hg.VIEWBOX, h / hg.VIEWBOX)
-    ctx.set_source_rgba(1, 1, 1, alpha)
-    ctx.push_group()
-    svg_render.draw_svg(ctx, svg, 1.0)
-    ctx.pop_group_to_source()
+    ctx.set_source_surface(png, 0, 0)
     ctx.paint_with_alpha(alpha)
     ctx.restore()
 
