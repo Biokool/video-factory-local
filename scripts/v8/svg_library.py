@@ -20,6 +20,17 @@ LINE_COLORS = {
     "mercurio": {"hex": "#4D96FF", "rgb": (0.30, 0.59, 1.00), "name": "Línea de Mercurio"},
     "marte":    {"hex": "#FF4444", "rgb": (1.00, 0.27, 0.27), "name": "Línea de Marte"},
     "intuicion":{"hex": "#9B59B6", "rgb": (0.61, 0.35, 0.71), "name": "Línea de la Intuición"},
+    "isis":     {"hex": "#FF69B4", "rgb": (1.00, 0.41, 0.71), "name": "Línea de Isis"},
+    "neptuno":  {"hex": "#4488FF", "rgb": (0.27, 0.53, 1.00), "name": "Línea de Neptuno"},
+    "viajes":   {"hex": "#00CED1", "rgb": (0.00, 0.81, 0.82), "name": "Línea de Viajes"},
+    "hijos":    {"hex": "#FFB6C1", "rgb": (1.00, 0.71, 0.76), "name": "Línea de Hijos"},
+    "pareja":   {"hex": "#FF1493", "rgb": (1.00, 0.08, 0.58), "name": "Línea de Pareja"},
+    "rascetas": {"hex": "#DDA0DD", "rgb": (0.87, 0.63, 0.87), "name": "Rascetas"},
+    "anillo_familiar": {"hex": "#87CEEB", "rgb": (0.53, 0.81, 0.92), "name": "Anillo Familiar"},
+    "anillo_salomon":  {"hex": "#FFD700", "rgb": (1.00, 0.84, 0.00), "name": "Anillo de Salomón"},
+    "cinturon_venus":  {"hex": "#FF69B4", "rgb": (1.00, 0.41, 0.71), "name": "Cinturón de Venus"},
+    "cruz_san_andres": {"hex": "#B22222", "rgb": (0.70, 0.13, 0.13), "name": "Cruz de San Andrés"},
+    "vidas_pasadas":   {"hex": "#800080", "rgb": (0.50, 0.00, 0.50), "name": "Línea de Vidas Pasadas"},
 }
 
 # ── Colores de montes ───────────────────────────────────────────────
@@ -131,6 +142,17 @@ def generate_all():
         "mercurio":[(600, 900), (660, 920), (720, 940), (780, 920)],
         "marte":   [(520, 800), (580, 840), (640, 880)],
         "intuicion":[(680, 600), (720, 720), (740, 840)],
+        "isis":    [(560, 560), (540, 700), (540, 840), (560, 960)],
+        "neptuno": [(620, 980), (700, 1000), (780, 1020)],
+        "viajes":  [(860, 600), (900, 700), (940, 800), (960, 880)],
+        "hijos":   [(520, 680), (560, 720), (600, 760), (640, 800)],
+        "pareja":  [(880, 640), (920, 680), (960, 720)],
+        "rascetas":[(440, 1060), (540, 1060), (640, 1060), (740, 1060)],
+        "anillo_familiar":[(500, 740), (580, 700), (660, 680), (740, 680), (820, 700), (900, 740)],
+        "anillo_salomon": [(520, 720), (600, 680), (700, 660), (800, 680), (880, 720)],
+        "cinturon_venus": [(480, 600), (560, 560), (640, 540), (720, 540), (800, 560), (880, 600)],
+        "cruz_san_andres":[(680, 640), (740, 720), (800, 800), (740, 720), (680, 800)],
+        "vidas_pasadas":  [(740, 480), (720, 600), (700, 720), (700, 840)],
     }
 
     for lid, points in line_paths.items():

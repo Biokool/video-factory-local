@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-rascetas">
+    <path id="path-rascetas" d="M440,1060 Q440,1060 490.0,1060.0 Q540,1060 590.0,1060.0 Q640,1060 690.0,1060.0 L740,1060"
+          stroke="#DDA0DD" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

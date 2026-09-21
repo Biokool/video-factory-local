@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-isis">
+    <path id="path-isis" d="M560,560 Q560,560 550.0,630.0 Q540,700 540.0,770.0 Q540,840 550.0,900.0 L560,960"
+          stroke="#FF69B4" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

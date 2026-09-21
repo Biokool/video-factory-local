@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-21T15:47:30.369008",
+  "timestamp": "2026-09-21T16:00:47.654936",
   "python": {
     "status": "OK",
     "version": "3.11.15 (main, Jun 23 2026, 15:20:37) [MSC v.1944 64 bit (AMD64)]",
@@ -26,7 +26,8 @@
     "driver": "546.29"
   },
   "disk": {
-    "status": "UNKNOWN"
+    "status": "OK",
+    "free_gb": 234.2
   },
   "profile": {
     "id": "LEGACY_PASCAL_4GB",

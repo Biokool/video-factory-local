@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-pareja">
+    <path id="path-pareja" d="M880,640 Q880,640 900.0,660.0 Q920,680 940.0,700.0 L960,720"
+          stroke="#FF1493" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

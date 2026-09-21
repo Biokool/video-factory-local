@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-viajes">
+    <path id="path-viajes" d="M860,600 Q860,600 880.0,650.0 Q900,700 920.0,750.0 Q940,800 950.0,840.0 L960,880"
+          stroke="#00CED1" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

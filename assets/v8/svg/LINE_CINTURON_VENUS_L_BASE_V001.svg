@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-cinturon_venus">
+    <path id="path-cinturon_venus" d="M480,600 Q480,600 520.0,580.0 Q560,560 600.0,550.0 Q640,540 680.0,540.0 Q720,540 760.0,550.0 Q800,560 840.0,580.0 L880,600"
+          stroke="#FF69B4" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

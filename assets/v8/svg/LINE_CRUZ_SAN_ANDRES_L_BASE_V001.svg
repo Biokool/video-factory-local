@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-cruz_san_andres">
+    <path id="path-cruz_san_andres" d="M680,640 Q680,640 710.0,680.0 Q740,720 770.0,760.0 Q800,800 770.0,760.0 Q740,720 710.0,760.0 L680,800"
+          stroke="#B22222" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

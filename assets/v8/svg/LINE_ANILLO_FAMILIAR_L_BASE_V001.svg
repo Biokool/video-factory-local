@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-anillo_familiar">
+    <path id="path-anillo_familiar" d="M500,740 Q500,740 540.0,720.0 Q580,700 620.0,690.0 Q660,680 700.0,680.0 Q740,680 780.0,690.0 Q820,700 860.0,720.0 L900,740"
+          stroke="#87CEEB" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

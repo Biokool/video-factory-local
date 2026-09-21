@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-hijos">
+    <path id="path-hijos" d="M520,680 Q520,680 540.0,700.0 Q560,720 580.0,740.0 Q600,760 620.0,780.0 L640,800"
+          stroke="#FFB6C1" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>

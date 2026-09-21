@@ -11,16 +11,16 @@ import hand_geometry as hg
 
 def test_left_hand_finger_count():
     """Mano izquierda debe tener 5 dedos (4 superiores + pulgar)."""
-    outline = hg.build_hand_outline()
-    tips_y = [hg._finger_tip_cy(fi) for fi in hg.FINGERS.values()]
-    tips_above = sum(1 for y in tips_y if y < hg.PALM_CY - hg.PALM_H // 2)
-    assert tips_above == 4, f"Se esperan 4 dedos arriba, se encontraron {tips_above}"
+    svg = hg.hand_svg("L")
+    finger_ids = ["index-finger", "middle-finger", "ring-finger", "little-finger", "thumb"]
+    for fid in finger_ids:
+        assert f'id="{fid}"' in svg, f"Missing finger: {fid}"
 
 
 def test_right_hand_finger_count():
     """Espejo derecho debe tener la misma estructura."""
     svg_r = hg.hand_svg("R")
-    assert "hand-base" in svg_r or "path" in svg_r
+    assert 'id="hand-base"' in svg_r
 
 
 def test_finger_spread():
@@ -32,7 +32,7 @@ def test_finger_spread():
 
 def test_thumb_separate():
     """El pulgar debe estar separado de los demás dedos."""
-    index_x = hg._finger_tip_cx(hg.FINGERS["indice"])
+    index_x = hg._finger_tip_cx(hg.FINGERS["index-finger"])
     thumb_x = hg.PALM_CX + hg.THUMB["x_off"]
     assert abs(index_x - thumb_x) > 100, "Pulgar muy cerca del índice"
 

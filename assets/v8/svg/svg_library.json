@@ -96,6 +96,138 @@
     "sha256": "bfcdb5b7989dd487a279e624faefe7ddca1a646d705292034a0031f7e1cdf02e"
   },
   {
+    "asset_id": "LINE_ISIS_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_ISIS_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "54ef259313a5f77d812803d29c7519f770c46a3b96fb5d948e309784519a925c"
+  },
+  {
+    "asset_id": "LINE_NEPTUNO_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_NEPTUNO_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "3eacc236c1233feaadb89b8b69a99386089122e0cb93930f8c0030228ea530e6"
+  },
+  {
+    "asset_id": "LINE_VIAJES_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_VIAJES_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "9afb94a76d5bd05de1b3deb8e3aa5944b343e647982db99954c50fbc907de739"
+  },
+  {
+    "asset_id": "LINE_HIJOS_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_HIJOS_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "e92d6293c69a525462f8474e2ca3845377635d7dfb90fc16301e4fcca06d7710"
+  },
+  {
+    "asset_id": "LINE_PAREJA_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_PAREJA_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "70472acc685754c2264e1b4bd4f3fa875a8815b07ab641b0fe0a3ea607623c6f"
+  },
+  {
+    "asset_id": "LINE_RASCETAS_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_RASCETAS_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "957dc9ca291eeee06d2d6f2ee0d2d5cb8394e9c11374e066b125fea792d0eebd"
+  },
+  {
+    "asset_id": "LINE_ANILLO_FAMILIAR_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_ANILLO_FAMILIAR_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "991f30481b55d18bec69d16ad2d858253b88ed93eb63d693f3264616ad6034c0"
+  },
+  {
+    "asset_id": "LINE_ANILLO_SALOMON_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_ANILLO_SALOMON_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "5677f35194821ef57625805b2c0015d1bc7ee256f374b3a4409b69f648708821"
+  },
+  {
+    "asset_id": "LINE_CINTURON_VENUS_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_CINTURON_VENUS_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "23d3674b07a9af209095c6878810159b7f4209e1011f364956bd98441ca4b224"
+  },
+  {
+    "asset_id": "LINE_CRUZ_SAN_ANDRES_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_CRUZ_SAN_ANDRES_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "e8575a8361c6ec2e74a4aafc91bf1f6394ee9623109f1dbf88af342cbcf7cb11"
+  },
+  {
+    "asset_id": "LINE_VIDAS_PASADAS_L_BASE_V001",
+    "file": "assets/v8/svg/LINE_VIDAS_PASADAS_L_BASE_V001.svg",
+    "type": "LINE",
+    "status": "FROZEN",
+    "license": {
+      "name": "project_owned",
+      "commercial_use": "YES",
+      "status": "VERIFIED"
+    },
+    "sha256": "7eb2bcbced2db65c9450807c681a57651399f8d363d0cf6906bb33dc38069f09"
+  },
+  {
     "asset_id": "MOUNT_VENUS_L_V001",
     "file": "assets/v8/svg/MOUNT_VENUS_L_V001.svg",
     "type": "MOUNT",

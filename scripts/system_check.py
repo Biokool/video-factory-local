@@ -78,8 +78,9 @@ def check_python() -> dict:
 
 def check_disk() -> dict:
     try:
-        usage = os.statvfs(str(PROJECT_DIR))
-        free_gb = (usage.f_bavail * usage.f_frsize) / (1024 ** 3)
+        import shutil
+        usage = shutil.disk_usage(str(PROJECT_DIR))
+        free_gb = usage.free / (1024 ** 3)
         return {"status": "OK", "free_gb": round(free_gb, 1)}
     except Exception:
         return {"status": "UNKNOWN"}

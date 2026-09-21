@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048" width="512" height="512">
+  <defs></defs>
+  <g id="line-anillo_salomon">
+    <path id="path-anillo_salomon" d="M520,720 Q520,720 560.0,700.0 Q600,680 650.0,670.0 Q700,660 750.0,670.0 Q800,680 840.0,700.0 L880,720"
+          stroke="#FFD700" stroke-width="12" fill="none"
+          stroke-dasharray="16,8" stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>
