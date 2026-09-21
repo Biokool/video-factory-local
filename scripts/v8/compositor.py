@@ -35,6 +35,7 @@ from PIL import Image, ImageDraw  # noqa: E402
 
 import hand_geometry as hg  # noqa: E402
 import svg_render  # noqa: E402
+import svg_sanitizer  # noqa: E402
 
 SCRIPT_DIR = Path(__file__).resolve().parents[2]
 IMAGES_DIR = SCRIPT_DIR / "data" / "images"

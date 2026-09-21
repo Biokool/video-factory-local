@@ -29,8 +29,7 @@ def validate():
                     issues.append(f"SHA256 mismatch: {entry['asset_id']}")
 
     # Check hand assets
-    for hand_file in ["mano_izquierda_v10.svg", "mano_derecha_v10.svg",
-                       "mano_izquierda_solid.png", "mano_derecha_solid.png"]:
+    for hand_file in ["mano_izquierda_solid.png", "mano_derecha_solid.png"]:
         fpath = HANDS_DIR / hand_file
         if not fpath.exists():
             issues.append(f"Missing hand: {hand_file}")
