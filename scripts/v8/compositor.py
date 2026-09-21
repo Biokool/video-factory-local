@@ -123,12 +123,12 @@ def anchors(side="L"):
                     smooth.append((x, y))
             smooth.append(pts[-1])
             if side.upper() == "R":
-                smooth = [(hg.VIEWBOX - x, y) for x, y in smooth]
+                smooth = [(hg.VB - x, y) for x, y in smooth]
             lines[name] = smooth
     mounts = {}
     for name, (mx, my, mr) in raw_mounts.items():
         if side.upper() == "R":
-            mx = hg.VIEWBOX - mx
+            mx = hg.VB - mx
         mounts[name] = (mx, my, mr)
     return lines, mounts
 
@@ -297,7 +297,7 @@ def draw_footer(ctx, w, h, sid, tot):
 
 def _hand_to_screen(pt, box):
     x, y, w, h = box
-    return (x + pt[0] / hg.VIEWBOX * w, y + pt[1] / hg.VIEWBOX * h)
+    return (x + pt[0] / hg.VB * w, y + pt[1] / hg.VB * h)
 
 
 def _box_for_content(cx, cy, target_h):
@@ -309,7 +309,7 @@ def _box_for_content(cx, cy, target_h):
     s = target_h / ch
     bx = cx - (x0 + x1) / 2.0 * s
     by = cy - (y0 + y1) / 2.0 * s
-    return (bx, by, hg.VIEWBOX * s, hg.VIEWBOX * s)
+    return (bx, by, hg.VB * s, hg.VB * s)
 
 
 def draw_hand(ctx, box, side="L", alpha=1.0):
@@ -321,7 +321,7 @@ def draw_hand(ctx, box, side="L", alpha=1.0):
         svg = HAND_SVG_L if side.upper() == "L" else HAND_SVG_R
         ctx.save()
         ctx.translate(x, y)
-        ctx.scale(w / hg.VIEWBOX, h / hg.VIEWBOX)
+        ctx.scale(w / hg.VB, h / hg.VB)
         ctx.set_source_rgba(1, 1, 1, alpha)
         ctx.push_group()
         svg_render.draw_svg(ctx, svg, 1.0)
@@ -331,7 +331,7 @@ def draw_hand(ctx, box, side="L", alpha=1.0):
         return
     ctx.save()
     ctx.translate(x, y)
-    ctx.scale(w / hg.VIEWBOX, h / hg.VIEWBOX)
+    ctx.scale(w / hg.VB, h / hg.VB)
     ctx.set_source_surface(png, 0, 0)
     ctx.paint_with_alpha(alpha)
     ctx.restore()
@@ -378,7 +378,7 @@ def render_frame(scene, ki, nk, W, H, sid, tot, cfg, research, side="L"):
         if ma > 0:
             for name, (mx, my, mr) in mounts.items():
                 sx, sy = _hand_to_screen((mx, my), box)
-                sr = mr / hg.VIEWBOX * box[2]
+                sr = mr / hg.VB * box[2]
                 c = MCOL[name]
                 ctx.set_source_rgba(c[0], c[1], c[2], 0.30 * ma)
                 ctx.arc(sx, sy, sr * 1.5, 0, 6.283)

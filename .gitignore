@@ -50,3 +50,7 @@ Thumbs.db
 *.mp3
 *.wav
 *.srt
+node_modules/
+motion-canvas-project/dist/
+motion-canvas-project/.cache/
+*.log
