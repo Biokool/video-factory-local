@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Video Factory — Panel de Control</title>
+<style>
+  :root {
+    --bg: #0a0e17; --bg2: #111827; --panel: #1a2332; --panel2: #1e293b;
+    --border: #2d3a4d; --border2: #374151;
+    --ok: #22c55e; --off: #ef4444; --warn: #f59e0b; --accent: #3b82f6;
+    --accent2: #60a5fa; --purple: #a78bfa; --pink: #f472b6;
+    --txt: #f1f5f9; --muted: #94a3b8; --muted2: #64748b;
+    --grad1: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    --grad2: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+    --grad3: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--txt); min-height: 100vh; }
+
+  /* ── Header ──────────────────────── */
+  header {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 36px; height: 36px; background: var(--grad1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.3px; }
+  .header-stats { display: flex; gap: 16px; margin-left: auto; }
+  .stat-pill { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .stat-pill.ok { background: rgba(34,197,94,0.15); color: var(--ok); }
+  .stat-pill.run { background: rgba(59,130,246,0.15); color: var(--accent2); }
+  .stat-pill.total { background: rgba(148,163,184,0.1); color: var(--muted); }
+
+  /* ── Layout ──────────────────────── */
+  .container { padding: 20px 28px; display: grid; grid-template-columns: 420px 1fr; gap: 20px; }
+  @media (max-width: 1100px) { .container { grid-template-columns: 1fr; } }
+
+  /* ── Cards ───────────────────────── */
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px; position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--grad1); opacity: 0; transition: opacity 0.3s;
+  }
+  .card:hover::before { opacity: 1; }
+  .card-title {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted2); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .card-title .icon { font-size: 0.85rem; }
+  .card-full { grid-column: 1 / -1; }
+
+  /* ── Form ────────────────────────── */
+  label { display: block; font-size: 0.78rem; font-weight: 600; margin: 10px 0 4px; color: var(--muted); }
+  label:first-child { margin-top: 0; }
+  input, textarea, select {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border2); color: var(--txt);
+    border-radius: 8px; padding: 9px 12px; font-size: 0.88rem; font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+  textarea { min-height: 60px; resize: vertical; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  .btn {
+    width: 100%; padding: 11px 16px; border: none; border-radius: 10px;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer; margin-top: 16px;
+    background: var(--grad1); color: #fff; letter-spacing: 0.3px;
+    transition: transform 0.15s, box-shadow 0.3s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.3); }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── Services ────────────────────── */
+  .svc-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .svc-row:last-child { border-bottom: none; }
+  .svc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .svc-dot.ok { background: var(--ok); box-shadow: 0 0 8px rgba(34,197,94,0.4); }
+  .svc-dot.off { background: var(--off); box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+  .svc-dot.warn { background: var(--warn); box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+  .svc-name { flex: 1; font-size: 0.85rem; }
+  .svc-detail { font-size: 0.72rem; color: var(--muted2); max-width: 180px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── GPU ─────────────────────────── */
+  .gpu-bar { height: 8px; border-radius: 4px; background: var(--bg2); margin-top: 6px; overflow: hidden; }
+  .gpu-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .gpu-fill.low { background: var(--grad2); }
+  .gpu-fill.mid { background: var(--grad3); }
+  .gpu-fill.high { background: var(--off); }
+  .gpu-info { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── Steps ───────────────────────── */
+  .step {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px;
+    padding: 9px 14px; border-radius: 10px; margin: 5px 0;
+    background: var(--bg2); border: 1px solid var(--border); font-size: 0.82rem;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .step.done { border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.04); }
+  .step.running { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.06); animation: pulse 2s infinite; }
+  .step.warn { border-color: rgba(245,158,11,0.3); }
+  .step.error, .step.failed { border-color: rgba(239,68,68,0.3); }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.85; } }
+  .step-icon { font-size: 0.9rem; }
+  .step.done .step-icon::before { content: '\2713'; color: var(--ok); }
+  .step.running .step-icon::before { content: '\25B6'; color: var(--accent2); }
+  .step.warn .step-icon::before { content: '\26A0'; color: var(--warn); }
+  .step.error .step-icon::before, .step.failed .step-icon::before { content: '\2717'; color: var(--off); }
+  .step.pending .step-icon::before { content: '\25CB'; color: var(--muted2); }
+  .step-name { font-weight: 600; }
+  .step-detail { font-size: 0.7rem; color: var(--muted2); }
+  .step-tag {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 600;
+  }
+  .step.done .step-tag { background: rgba(34,197,94,0.2); color: var(--ok); }
+  .step.running .step-tag { background: rgba(59,130,246,0.2); color: var(--accent2); }
+  .step.warn .step-tag { background: rgba(245,158,11,0.2); color: var(--warn); }
+  .step.error .step-tag, .step.failed .step-tag { background: rgba(239,68,68,0.2); color: var(--off); }
+  .step.pending .step-tag { background: rgba(148,163,184,0.1); color: var(--muted2); }
+
+  /* ── Job history table ───────────── */
+  .jobs-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .jobs-table th {
+    text-align: left; padding: 8px 10px; color: var(--muted2); font-weight: 600;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+  .jobs-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
+  .jobs-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .status-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;
+  }
+  .status-badge.done { background: rgba(34,197,94,0.15); color: var(--ok); }
+  .status-badge.running { background: rgba(59,130,246,0.15); color: var(--accent2); }
+  .status-badge.error { background: rgba(239,68,68,0.15); color: var(--off); }
+  .status-badge.pending { background: rgba(148,163,184,0.1); color: var(--muted); }
+  .video-link { color: var(--accent2); text-decoration: none; font-weight: 600; }
+  .video-link:hover { text-decoration: underline; }
+
+  /* ── Videos grid ─────────────────── */
+  .video-card {
+    display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px;
+    background: var(--bg2); border: 1px solid var(--border); margin: 6px 0;
+    transition: border-color 0.2s;
+  }
+  .video-card:hover { border-color: var(--accent); }
+  .video-thumb { width: 48px; height: 48px; background: var(--panel2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+  .video-info { flex: 1; min-width: 0; }
+  .video-name { font-size: 0.82rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .video-meta { font-size: 0.7rem; color: var(--muted2); }
+
+  .empty { color: var(--muted2); font-size: 0.82rem; font-style: italic; padding: 20px 0; text-align: center; }
+
+  /* ── Banner ──────────────────────── */
+  .banner { margin: 0 28px; padding: 12px 18px; border-radius: 10px; font-size: 0.88rem; display: none; align-items: center; gap: 10px; }
+  .banner.show { display: flex; }
+  .banner.ok { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
+  .banner.err { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+
+  /* ── Progress bar (active job) ───── */
+  .progress-bar { height: 4px; border-radius: 2px; background: var(--bg2); margin: 10px 0; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; background: var(--grad1); transition: width 0.5s; }
+
+  /* ── Footer ──────────────────────── */
+  footer { padding: 16px 28px; color: var(--muted2); font-size: 0.72rem; border-top: 1px solid var(--border); text-align: center; margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">F</div>
+    <div><h1>AI Video Factory</h1><div style="font-size:0.7rem;color:var(--muted2)">Panel de control v8.1</div></div>
+  </div>
+  <div class="header-stats">
+    <span class="stat-pill ok" id="h-services">--</span>
+    <span class="stat-pill run" id="h-running">0 activos</span>
+    <span class="stat-pill total" id="h-total">0 jobs</span>
+  </div>
+  <div style="margin-left:auto;font-size:0.75rem;color:var(--muted2)" id="clock"></div>
+</header>
+
+<div class="banner" id="banner"></div>
+
+<div class="container">
+  <!-- LEFT: form + active job -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Form -->
+    <div class="card">
+      <div class="card-title"><span class="icon">&#9654;</span> Generar video</div>
+      <label>Tema</label>
+      <input id="topic" placeholder="Ej: La l&iacute;nea de la vida en la quiromancia">
+
+      <label>Documento de contexto (PDF)</label>
+      <input type="file" id="pdf" accept=".pdf" style="padding:7px 12px;">
+
+      <label>Instrucciones / enfoque</label>
+      <textarea id="instructions" placeholder="Ej: educativo, terap&eacute;utico, en espa&ntilde;ol de M&eacute;xico"></textarea>
+
+      <div class="form-row-3">
+        <div>
+          <label>Duraci&oacute;n (s)</label>
+          <input id="duration" type="number" value="60" min="15" max="540">
+        </div>
+        <div>
+          <label>Motor de voz</label>
+          <select id="engine">
+            <option value="auto">Auto (VoiceStudio &rarr; SAPI)</option>
+            <option value="voicestudio">VoiceStudio (natural, GPU)</option>
+            <option value="sapi">SAPI (sin GPU)</option>
+          </select>
+        </div>
+        <div>
+          <label>G&eacute;nero</label>
+          <select id="gender">
+            <option value="female">Femenina</option>
+            <option value="male">Masculina</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div>
+          <label>Formato</label>
+          <select id="format">
+            <option value="test_30s">Prueba 30s (16:9)</option>
+            <option value="long">Largo 8-9 min (16:9)</option>
+            <option value="short">Short (9:16)</option>
+          </select>
+        </div>
+        <div>
+          <label>Guion</label>
+          <select id="mode">
+            <option value="canned">Plantilla</option>
+            <option value="live">IA (LLM + RAG)</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn" id="generate">Generar video</button>
+    </div>
+
+    <!-- Active job progress -->
+    <div class="card">
+      <div class="card-title"><span class="icon">&#9881;</span> Progreso del job</div>
+      <div id="jobinfo" class="empty">Sin job activo</div>
+      <div class="progress-bar" id="progress-bar" style="display:none;"><div class="progress-fill" id="progress-fill"></div></div>
+      <div id="steps"></div>
+    </div>
+
+    <!-- Services -->
+    <div class="card">
+      <div class="card-title"><span class="icon">&#9889;</span> Servicios</div>
+      <div id="services"><div class="empty">Cargando...</div></div>
+      <div id="gpu-section" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: jobs history + videos -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Job history -->
+    <div class="card card-full">
+      <div class="card-title"><span class="icon">&#128203;</span> Jobs ejecutados</div>
+      <div id="jobs-list"><div class="empty">Cargando...</div></div>
+    </div>
+
+    <!-- Videos -->
+    <div class="card card-full">
+      <div class="card-title"><span class="icon">&#127909;</span> Videos generados</div>
+      <div id="videos"><div class="empty">Cargando...</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>Panel local &mdash; los datos no salen de tu m&aacute;quina &middot; VoiceStudio + Ollama + FFmpeg &middot; V8.1</footer>
+
+<script>
+let currentJob = null, pollTimer = null;
+
+function tag(s) {
+  return {pending:'pendiente',running:'en curso',done:'hecho',skipped:'omitido',warn:'aviso',error:'error',failed:'error'}[s]||s;
+}
+
+// ── Clock ─────────────────────
+function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString(); }
+tick(); setInterval(tick, 1000);
+
+// ── Services ──────────────────
+async function loadServices() {
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    const s = document.getElementById('services');
+    s.innerHTML = (d.services||[]).map(x =>
+      `<div class="svc-row"><span class="svc-dot ${x.status==='OK'?'ok':(x.status==='WARN'?'warn':'off')}"></span><span class="svc-name">${x.name}</span><span class="svc-detail">${x.detail||''}</span></div>`
+    ).join('');
+    // GPU
+    const g = document.getElementById('gpu-section');
+    if (d.gpu) {
+      const pct = Math.round(d.gpu.used_mb / d.gpu.total_mb * 100);
+      const cls = pct < 60 ? 'low' : pct < 85 ? 'mid' : 'high';
+      g.innerHTML = `
+        <div class="svc-row"><span class="svc-dot ok"></span><span class="svc-name">GPU: ${d.gpu.name}</span><span class="svc-detail">${d.gpu.used_mb}/${d.gpu.total_mb} MB</span></div>
+        <div class="gpu-bar"><div class="gpu-fill ${cls}" style="width:${pct}%"></div></div>
+        <div class="gpu-info"><span>${pct}% VRAM</span><span>${d.gpu.util_pct||0}% util</span><span>${d.gpu.temp_c||0}&deg;C</span></div>
+      `;
+    } else { g.innerHTML = ''; }
+    // Header stats
+    if (d.summary) {
+      document.getElementById('h-services').textContent = `${d.summary.ok}/${d.summary.total} servicios`;
+      document.getElementById('h-running').textContent = `${d.summary.running_jobs} activos`;
+      document.getElementById('h-total').textContent = `${d.summary.total_jobs} jobs · ${d.summary.completed_jobs} hechos`;
+    }
+  } catch(e) {}
+}
+
+// ── Videos ────────────────────
+async function loadVideos() {
+  try {
+    const r = await fetch('/api/videos');
+    const d = await r.json();
+    const v = document.getElementById('videos');
+    if (!d.videos || !d.videos.length) { v.innerHTML = '<div class="empty">No hay videos todav&iacute;a</div>'; return; }
+    v.innerHTML = d.videos.map(x => `
+      <div class="video-card">
+        <div class="video-thumb">&#9654;</div>
+        <div class="video-info">
+          <a class="video-link" href="/videos/${x.name}" target="_blank">${x.name}</a>
+          <div class="video-meta">${x.size_mb} MB &middot; ${x.date}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+// ── Job history ───────────────
+async function loadJobs() {
+  try {
+    const r = await fetch('/api/jobs');
+    const d = await r.json();
+    const el = document.getElementById('jobs-list');
+    if (!d.jobs || !d.jobs.length) { el.innerHTML = '<div class="empty">No hay jobs ejecutados</div>'; return; }
+    el.innerHTML = `<table class="jobs-table">
+      <thead><tr><th>Job</th><th>Tema</th><th>Estado</th><th>Pasos</th><th>Tiempo</th><th>Video</th></tr></thead>
+      <tbody>${d.jobs.map(j => {
+        const stepsDone = Object.values(j.steps||{}).filter(v => v==='done').length;
+        const stepsTotal = Object.keys(j.steps||{}).length;
+        const shortLink = j.short ? `<a class="video-link" href="/videos/${j.short}" target="_blank">9:16</a>` : '';
+        return `<tr>
+          <td style="font-size:0.72rem;color:var(--muted2)">${j.job_id.slice(-14)}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.8rem">${j.topic||'-'}</td>
+          <td><span class="status-badge ${j.status}">${tag(j.status)}</span></td>
+          <td style="font-size:0.78rem">${stepsDone}/${stepsTotal}</td>
+          <td style="font-size:0.78rem;color:var(--muted2)">${j.elapsed||'-'}</td>
+          <td>${j.video ? `<a class="video-link" href="/videos/${j.video}" target="_blank">16:9</a>` : ''}
+              ${shortLink}</td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+  } catch(e) {}
+}
+
+// ── Active job ────────────────
+async function loadJob(id) {
+  if (!id) return;
+  try {
+    const r = await fetch('/api/jobs/' + id);
+    const d = await r.json();
+    const info = document.getElementById('jobinfo');
+    info.innerHTML = `<b>${d.job_id}</b> &middot; estado: <b>${tag(d.status)}</b>`;
+    if (d.error) info.innerHTML += `<br><span style="color:var(--off)">${d.error}</span>`;
+    if (d.video) info.innerHTML += `<br><a class="video-link" href="/videos/${d.video.split(/[\\/]/).pop()}" target="_blank">▶ Ver video 16:9</a>`;
+    if (d.short) info.innerHTML += ` &middot; <a class="video-link" href="/videos/${d.short.split(/[\\/]/).pop()}" target="_blank">▶ 9:16</a>`;
+    const steps = document.getElementById('steps');
+    const total = (d.steps||[]).length;
+    const done = (d.steps||[]).filter(s => s.status==='done').length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    const bar = document.getElementById('progress-bar');
+    const fill = document.getElementById('progress-fill');
+    if (d.status === 'running') {
+      bar.style.display = '';
+      fill.style.width = pct + '%';
+    } else {
+      bar.style.display = 'none';
+    }
+    steps.innerHTML = (d.steps||[]).map(s =>
+      `<div class="step ${s.status}"><span class="step-icon"></span><span class="step-name">${s.name}</span><span class="step-detail">${s.detail||''}</span><span class="step-tag">${tag(s.status)}</span></div>`
+    ).join('');
+    if (d.status === 'done' || d.status === 'error') {
+      clearInterval(pollTimer); pollTimer = null;
+      loadVideos(); loadJobs();
+    }
+  } catch(e) {}
+}
+
+// ── Generate ──────────────────
+async function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { alert('Escribe un tema.'); return; }
+  const banner = document.getElementById('banner');
+  banner.className = 'banner';
+  const fd = new FormData();
+  fd.append('topic', topic);
+  fd.append('duration', document.getElementById('duration').value);
+  fd.append('instructions', document.getElementById('instructions').value);
+  fd.append('gender', document.getElementById('gender').value);
+  fd.append('engine', document.getElementById('engine').value);
+  fd.append('format', document.getElementById('format').value);
+  fd.append('mode', document.getElementById('mode').value);
+  const pdf = document.getElementById('pdf').files[0];
+  if (pdf) fd.append('pdf', pdf);
+  document.getElementById('generate').disabled = true;
+  try {
+    const r = await fetch('/api/generate', { method:'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok) { banner.className='banner show err'; banner.textContent = d.error || 'Error al iniciar'; }
+    else {
+      banner.className='banner show ok';
+      banner.textContent = 'Generacion iniciada: ' + d.job_id;
+      currentJob = d.job_id;
+      loadJob(currentJob);
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => loadJob(currentJob), 3000);
+    }
+  } catch(e) { banner.className='banner show err'; banner.textContent = String(e); }
+  finally { document.getElementById('generate').disabled = false; }
+}
+
+document.getElementById('generate').addEventListener('click', generate);
+loadServices(); loadVideos(); loadJobs();
+setInterval(loadServices, 8000);
+setInterval(() => { if (!currentJob) { loadVideos(); loadJobs(); } }, 5000);
+</script>
+</body>
+</html>

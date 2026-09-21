@@ -22,6 +22,11 @@
 - QA robusta de dedos por componentes conectados (resta la palma y exige 5
   componentes con punta por encima). Verificado en izquierda y derecha.
 - `content_bbox()` en `hand_geometry.py`.
+- **Voz humana**: VoiceStudio (OmniVoice) como motor principal, con fallback
+  a SAPI (voz Sabina es-MX). Pipeline `--engine auto|voicestudio|sapi`.
+- Monitor rediseñado: dashboard HTML externo con estilos mejorados, historial
+  de jobs, parámetros de creación, GPU bars, engine de voz seleccionable.
+- `examples/` con frames JPG + videos para validación externa.
 
 ## [V8] — Motor visual vectorial y homologación V7
 

@@ -130,6 +130,8 @@ def main():
     parser.add_argument("--duration", type=int, default=60)
     parser.add_argument("--instructions", default="")
     parser.add_argument("--gender", default="female", choices=["female", "male"])
+    parser.add_argument("--engine", default="auto", choices=["auto", "voicestudio", "sapi"])
+    parser.add_argument("--voice", default=None, help="Voz SAPI (ej: Microsoft Sabina Desktop)")
     parser.add_argument("--format", default="test_30s", choices=["test_30s", "long", "short"])
     parser.add_argument("--pdf", default=None)
     parser.add_argument("--mode", default="extract", choices=["live", "canned", "extract"])
@@ -148,6 +150,7 @@ def main():
     duration = args.duration
     instructions = args.instructions
     gender = args.gender
+    engine = args.engine
     fmt = args.format
     mode = args.mode
 
@@ -255,11 +258,14 @@ def main():
             research_path = None
 
         # ── 5. TTS ────────────────────────────────────────────────────────
-        state.set_step("generate_tts", "running", f"voz {gender}")
-        rc, out, err = run([PYTHON, str(SCRIPT_DIR / "scripts" / "generate_tts.py"),
-                            "--storyboard", str(job_dir / "storyboard.json"),
-                            "--output-dir", str(SCRIPT_DIR / "data" / "audio"),
-                            "--engine", "auto", "--gender", gender], timeout=1800)
+        state.set_step("generate_tts", "running", f"voz {gender} · {engine}")
+        tts_cmd = [PYTHON, str(SCRIPT_DIR / "scripts" / "generate_tts.py"),
+                   "--storyboard", str(job_dir / "storyboard.json"),
+                   "--output-dir", str(SCRIPT_DIR / "data" / "audio"),
+                   "--engine", engine, "--gender", gender]
+        if args.voice:
+            tts_cmd += ["--voice", args.voice]
+        rc, out, err = run(tts_cmd, timeout=1800)
         if rc != 0:
             raise RuntimeError(f"generate_tts: {err[-500:]}")
         state.set_step("generate_tts", "done", "")

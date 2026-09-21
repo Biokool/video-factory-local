@@ -94,13 +94,33 @@ def generate_voicestudio_wav(
         return False
 
 
-def generate_sapi_wav(text: str, output_path: Path, voice_name: str = None) -> bool:
+def detect_spanish_sapi_voice() -> str:
+    """Devuelve la primera voz SAPI en español instalada (p. ej. Sabina es-MX)."""
+    ps = ('Add-Type -AssemblyName System.Speech;'
+          '$s=New-Object System.Speech.Synthesis.SpeechSynthesizer;'
+          '($s.GetInstalledVoices()|Where-Object {$_.VoiceInfo.Culture.Name -like "es*"}'
+          '|Select-Object -First 1).VoiceInfo.Name')
+    try:
+        r = subprocess.run(["powershell", "-NoProfile", "-Command", ps],
+                           capture_output=True, text=True, encoding="utf-8", timeout=30)
+        name = (r.stdout or "").strip()
+        return name or ""
+    except Exception:
+        return ""
+
+
+def generate_sapi_wav(text: str, output_path: Path, voice_name: str = None,
+                      rate: int = 0) -> bool:
     """
     Genera un WAV usando PowerShell + System.Speech.Synthesis.
-    Esto funciona en cualquier Windows 10/11 sin instalar nada extra.
+
+    Si no se indica voz, elige la primera voz en español instalada (es-MX)
+    para no leer texto español con una voz en inglés. `rate` va de -10 a 10.
     """
+    if not voice_name:
+        voice_name = detect_spanish_sapi_voice()
     safe_text = text.replace('"', "'").replace("`", "'").replace("$", "")
-    ps_script = f'''
+    ps_script = '''
 Add-Type -AssemblyName System.Speech
 $synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
 '''
@@ -113,6 +133,7 @@ try {{
 }}
 '''
     ps_script += f'''
+$synth.Rate = {int(rate)}
 $synth.SetOutputToWaveFile("{output_path}")
 $synth.Speak("{safe_text}")
 $synth.Dispose()
@@ -153,6 +174,7 @@ def main():
     parser.add_argument("--voicestudio-url", default=os.environ.get("VOICESTUDIO_BASE_URL", "http://127.0.0.1:3900"))
     parser.add_argument("--voicestudio-voice", default=os.environ.get("VOICESTUDIO_VOICE", "alloy"))
     parser.add_argument("--voice", default=None, help="Nombre de voz SAPI (ej: 'Microsoft Sabina Desktop')")
+    parser.add_argument("--rate", type=int, default=0, help="Ritmo SAPI (-10..10)")
     args = parser.parse_args()
 
     sb_path = Path(args.storyboard)
@@ -183,7 +205,7 @@ def main():
                 if ok:
                     engine_used = "voicestudio"
             if not ok:
-                ok = generate_sapi_wav(text, out_path, args.voice)
+                ok = generate_sapi_wav(text, out_path, args.voice, rate=args.rate)
                 engine_used = "sapi"
             if not ok:
                 print(f"  Scene {scene_id} FAILED")
@@ -199,7 +221,7 @@ def main():
             prov["voice_id"] = args.voicestudio_voice
             prov["voice_model"] = os.environ.get("VOICESTUDIO_MODEL", prov.get("voice_model", "OmniVoice"))
         elif engine_used == "sapi":
-            prov["voice_id"] = args.voice or "system-default"
+            prov["voice_id"] = args.voice or detect_spanish_sapi_voice() or "system-default"
         print(f"  Scene {scene_id}: {out_path.name} ({duration:.1f}s, {size:,} bytes) [{engine_used}]")
         voice_meta.append({
             "scene_id": scene_id,

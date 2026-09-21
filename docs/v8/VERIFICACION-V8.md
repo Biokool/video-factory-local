@@ -58,16 +58,17 @@ chunks 384  secciones 735  orphans 0
 El vínculo chunk↔sección se resuelve por **solapamiento de rangos**
 (`inicio,fin` en el texto normalizado), no por índice de chunk.
 
-## 6. Pipeline E2E (canned, 15 s)
+## 6. Pipeline E2E (canned, 15 s, voz VoiceStudio)
 
 ```
-python scripts/pipeline.py --job-id demo-v8-final --topic "linea de la vida" \
-    --duration 15 --mode canned --format test_30s
-{"status": "done", "video": ".../demo-v8-final.mp4", "short": ".../demo-v8-final_short.mp4"}
+python scripts/pipeline.py --job-id demo-v8-voicestudio --topic "linea de la vida" \
+    --duration 15 --mode canned --engine voicestudio --format test_30s
+{"status": "done", "video": ".../demo-v8-voicestudio.mp4", "short": ".../demo-v8-voicestudio_short.mp4"}
 ```
 
-Estados de los pasos: todos `done`, salvo `policy_gate: warn` (BLOCK por
-SAPI, correcto) y `extract_pdf/rag_ingest: skipped` (sin PDF nuevo).
+Estados de los pasos: todos `done`, salvo `extract_pdf/rag_ingest: skipped`.
+Voz: VoiceStudio OmniVoice (femenina, 24 kHz mono → 44100 estéreo en mux).
+Archivos de ejemplo en `examples/` para validación externa.
 
 ## 7. Audio y encuadre de ambos formatos
 
@@ -94,7 +95,10 @@ versionada). Los avisos de "posible secreto DB" son `postgres:postgres@
 
 ## Limitación conocida
 
-La duración real del video resultante la fija el audio TTS: SAPI narra el
-guion completo (~50 s) aunque se pida `--duration 15`. El pipeline
-sincroniza las duraciones de escena al audio real. Para clips de 15 s
-exactos hace falta narración corta o un TTS verificado comercialmente.
+La duración real del video resultante la fija el audio TTS. VoiceStudio
+narra el guion completo (~47 s) aunque se pida `--duration 15`. El pipeline
+sincroniza las duraciones de escena al audio real. Para clips exactos
+hace falta narración cortada o un TTS con control de duración.
+
+La mano vectorial tiene buena forma y 5 dedos, pero el usuario reporta
+que la proporción/pulgar no es perfecta. Se sigue iterando.
