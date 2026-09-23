@@ -70,6 +70,10 @@ HAND_SVG_R = hg.hand_svg("R")
 HAND_PNG_L = SCRIPT_DIR / "assets" / "v8" / "hands" / "mano_izquierda_solid.png"
 HAND_PNG_R = SCRIPT_DIR / "assets" / "v8" / "hands" / "mano_derecha_solid.png"
 
+# Photographic hand references (preferred over procedural)
+REF_PNG_L = SCRIPT_DIR / "img_base" / "mano_izquierda.png"
+REF_PNG_R = SCRIPT_DIR / "img_base" / "mano_derecha.png"
+
 def _load_png(path):
     """Load a PNG file into a Cairo ImageSurface."""
     if path.exists():
@@ -81,8 +85,15 @@ _HAND_PNG_CACHE = {}
 def _get_hand_png(side):
     key = side.upper()
     if key not in _HAND_PNG_CACHE:
-        p = HAND_PNG_L if key == "L" else HAND_PNG_R
-        _HAND_PNG_CACHE[key] = _load_png(p)
+        # Prefer photographic reference over procedural
+        ref = REF_PNG_L if key == "L" else REF_PNG_R
+        proc = HAND_PNG_L if key == "L" else HAND_PNG_R
+        if ref.exists():
+            _HAND_PNG_CACHE[key] = _load_png(ref)
+        elif proc.exists():
+            _HAND_PNG_CACHE[key] = _load_png(proc)
+        else:
+            _HAND_PNG_CACHE[key] = None
     return _HAND_PNG_CACHE[key]
 
 
@@ -304,16 +315,26 @@ def _box_for_content(cx, cy, target_h):
     """Caja (x,y,w,h) del viewBox que encuadra el CONTENIDO de la mano
     centrado en (cx,cy) con altura target_h. Corrige que la mano ocupe
     solo una franja del viewBox (por eso antes salía pequeña)."""
-    x0, y0, x1, y1 = hg.content_bbox()
+    # Check if using photographic reference (1024x1536) vs procedural (2048x2048)
+    ref_l = REF_PNG_L
+    if ref_l.exists():
+        # Photographic: 1024x1536, content is roughly full image
+        ref_w, ref_h = 1024, 1536
+        x0, y0 = 0, 0
+        x1, y1 = ref_w, ref_h
+    else:
+        # Procedural: 2048x2048, use content_bbox
+        x0, y0, x1, y1 = hg.content_bbox()
+        ref_w, ref_h = hg.VB, hg.VB
     ch = (y1 - y0) or 1.0
     s = target_h / ch
     bx = cx - (x0 + x1) / 2.0 * s
     by = cy - (y0 + y1) / 2.0 * s
-    return (bx, by, hg.VB * s, hg.VB * s)
+    return (bx, by, ref_w * s, ref_h * s)
 
 
 def draw_hand(ctx, box, side="L", alpha=1.0):
-    """Draw pre-rendered solid hand PNG (filled, with lines and mounts)."""
+    """Draw hand - photographic reference preferred over procedural."""
     x, y, w, h = box
     png = _get_hand_png(side)
     if png is None:
@@ -329,9 +350,12 @@ def draw_hand(ctx, box, side="L", alpha=1.0):
         ctx.paint_with_alpha(alpha)
         ctx.restore()
         return
+    # Use actual PNG dimensions for correct scaling
+    png_w = png.get_width()
+    png_h = png.get_height()
     ctx.save()
     ctx.translate(x, y)
-    ctx.scale(w / hg.VB, h / hg.VB)
+    ctx.scale(w / png_w, h / png_h)
     ctx.set_source_surface(png, 0, 0)
     ctx.paint_with_alpha(alpha)
     ctx.restore()
